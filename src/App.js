@@ -42,7 +42,8 @@ const categoryStructure = {
       'Interior Lighting': ['Dome Lights', 'Map Lights', 'Door Lights', 'Dashboard Lights', 'LED Interior Kits'],
       'Signal & Marker Lights': ['Turn Signal Bulbs', 'Side Marker Lights', 'Corner Lights', 'Parking Light Assemblies'],
       'Fog Lights': ['Fog Light Assemblies', 'Fog Light Bulbs', 'Fog Light Covers', 'Fog Light Switches'],
-      'Off-Road Lighting': ['Light Bars', 'Spotlights', 'Rock Lights', 'Underbody Lights']
+      'Off-Road Lighting': ['Light Bars', 'Spotlights', 'Rock Lights', 'Underbody Lights'],
+      'Lighting Electrical': ['Headlight Switches', 'Dimmer Switches', 'Turn Signal Flashers', 'Ballasts']
     }
   },
   'Interior Accessories': {
@@ -52,8 +53,7 @@ const categoryStructure = {
       'Floor Protection': ['Floor Mats', 'Cargo Liners', 'Trunk Mats', 'All-Weather Mats', 'Carpet Floor Mats'],
       'Steering Wheel': ['Steering Wheel Covers', 'Performance Steering Wheels', 'Steering Wheel Accessories'],
       'Dashboard & Console': ['Dashboard Covers', 'Console Organizers', 'Cup Holders', 'Phone Mounts', 'GPS Mounts'],
-      'Comfort & Convenience': ['Sun Shades', 'Visor Organizers', 'Cargo Nets', 'Coat Hangers', 'Trash Bins'],
-      'Electronics': ['Backup Cameras', 'Dash Cams', 'Car Stereos', 'Speakers', 'Amplifiers', 'Subwoofers']
+      
     }
   },
   'Exterior Accessories': {
@@ -72,8 +72,7 @@ const categoryStructure = {
     subcategories: {
       'Wheels': ['Alloy Wheels', 'Steel Wheels', 'Chrome Wheels', 'Black Wheels', 'Off-Road Wheels'],
       'Tires': ['All-Season Tires', 'Summer Tires', 'Winter Tires', 'Performance Tires', 'Off-Road Tires', 'Run-Flat Tires'],
-      'Wheel Accessories': ['Lug Nuts', 'Wheel Locks', 'Center Caps', 'Wheel Spacers', 'Hub Rings', 'Valve Stems'],
-      'Tire Accessories': ['Tire Pressure Monitors', 'Tire Covers', 'Tire Repair Kits', 'Tire Chains', 'Tire Inflators'],
+      
       'Suspension': ['Struts', 'Shocks', 'Springs', 'Sway Bars', 'Control Arms', 'Ball Joints', 'Tie Rods', 'Lift Kits']
     }
   },
@@ -81,17 +80,15 @@ const categoryStructure = {
     icon: '🔧',
     subcategories: {
       'Panels': ['Fenders', 'Hoods', 'Doors', 'Bumpers', 'Quarter Panels', 'Rocker Panels', 'Trunk Lids', 'Tailgates'],
-      'Glass': ['Windshields', 'Side Windows', 'Back Glass', 'Mirror Glass', 'Sunroof Glass'],
-      'Mounting Hardware': ['Body Clips', 'Fasteners', 'Adhesives', 'Brackets', 'Hinges']
+      
     }
   },
   'Electrical & Electronics': {
     icon: '🔌',
     subcategories: {
-      'Charging System': ['Alternators', 'Batteries', 'Starters', 'Battery Cables', 'Battery Trays'],
       'Sensors': ['Oxygen Sensors', 'MAP Sensors', 'Throttle Position Sensors', 'Temperature Sensors', 'ABS Sensors'],
       'Wiring': ['Wiring Harnesses', 'Relays', 'Fuses', 'Circuit Breakers', 'Connectors'],
-      'Lighting Electrical': ['Headlight Switches', 'Dimmer Switches', 'Turn Signal Flashers', 'Ballasts']
+      
     }
   },
   'Climate Control': {
@@ -99,7 +96,7 @@ const categoryStructure = {
     subcategories: {
       'A/C Components': ['A/C Compressors', 'Condensers', 'Evaporators', 'A/C Hoses', 'Expansion Valves', 'Receiver Driers'],
       'Heating': ['Heater Cores', 'Heater Control Valves', 'Blower Motors', 'Blower Resistors'],
-      'Controls': ['Climate Control Modules', 'Temperature Sensors', 'Blend Door Actuators']
+      
     }
   }
 };
@@ -151,12 +148,36 @@ const subcategoryIcons = {
 const getSubcategoryIcon = (name) => subcategoryIcons[name] || '📦';
 
 // Explicit mapping for subcategory -> exact image filename you uploaded.
-// Add entries here to hardcode images and avoid emoji/icons.
+// Update this mapping when you add new photos to `public/category-images/`.
 const explicitSubcategoryImage = {
   'Engine Components': '/category-images/engine-components.png',
   'Exhaust Systems': '/category-images/exhaust-systems.png',
   'Tires': '/category-images/tires.png',
-  'Air Intake & Filters': '/category-images/air-intake.png'
+  'Air Intake & Filters': '/category-images/air-intake.png',
+  'Headlights': '/category-images/headlights.png',
+  'Tail Lights': '/category-images/tail-lights.png',
+  'Fog Lights': '/category-images/fog-lights.png',
+  'Off-Road Lighting': '/category-images/off-road-lighting.png',
+  'Signal & Marker Lights': '/category-images/signal-marker-lights.png',
+  'Wheels': '/category-images/wheels.png',
+  'Suspension': '/category-images/suspension.png',
+  'A/C Components': '/category-images/ac-components.png',
+  'Heating': '/category-images/heating.png',
+  'Sensors': '/category-images/sensors.png',
+  'Panels': '/category-images/panels.png',
+  'Roof Accessories': '/category-images/roof-accessories.png',
+  'Grilles & Trim': '/category-images/grilles.png',
+  'Floor Protection': '/category-images/floor-protection.png',
+  'Seating': '/category-images/seating.png',
+  'Dashboard & Console': '/category-images/dashboard-console.png',
+  'Aerodynamics': '/category-images/aerodynamics.png',
+  'Protection': '/category-images/car-cover.png',
+  'Mirrors': '/category-images/mirrors.png',
+  'Windshield & Windows': '/category-images/windshield-windows.png',
+  'Fuel System': '/category-images/fuel-system.png',
+  'Cooling System': '/category-images/cooling-system.png',
+  'Ignition System': '/category-images/ignition-system.png',
+  'Transmission': '/category-images/transmission.png'
 };
 
 // Subcategory image auto-resolver (tries explicit mapping first; then common candidates).
