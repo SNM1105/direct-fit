@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import logo from './logo.png';
 
+// Backend API base URL
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 // Comprehensive category structure for 1.2M+ parts
 const categoryStructure = {
   'Performance Parts': {
@@ -989,35 +992,59 @@ export default function DirectFitAutomotive() {
   // when that feature is available. Orders remain in-memory for the current session only.
 
   /* --- handlers --- */
-  const handleLogin = () => {
-    const user = users.find(u => u.email === loginEmail && u.password === loginPassword);
-    if (user) {
-      setCurrentUser(user);
-      setIsLoggedIn(true);
-      setShowAuthModal(false);
-      setLoginEmail('');
-      setLoginPassword('');
-    } else {
-      alert('Invalid credentials. Try demo@mechanic.com / demo123 or personal@email.com / demo123');
+  const handleLogin = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem('token', data.token);
+        setCurrentUser(data.user);
+        setIsLoggedIn(true);
+        setShowAuthModal(false);
+        setLoginEmail('');
+        setLoginPassword('');
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    } catch (error) {
+      alert('Login error: ' + error.message);
     }
   };
 
-  const handleSignup = () => {
-    const newUser = {
-      id: users.length + 1,
-      email: signupData.email,
-      password: signupData.password,
-      name: signupData.accountType === 'business' ? signupData.company : signupData.name,
-      margin: signupData.accountType === 'business' ? 15 : 20,
-      type: 'user',
-      accountType: signupData.accountType,
-      subscription: 'active'
-    };
-    setUsers(prev => [...prev, newUser]);
-    setCurrentUser(newUser);
-    setIsLoggedIn(true);
-    setShowAuthModal(false);
-    setSignupData({ email: '', password: '', name: '', company: '', accountType: 'business' });
+  const handleSignup = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: signupData.email,
+          password: signupData.password,
+          name: signupData.name,
+          company: signupData.company,
+          accountType: signupData.accountType
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        localStorage.setItem('token', data.token);
+        setCurrentUser(data.user);
+        setIsLoggedIn(true);
+        setShowAuthModal(false);
+        setSignupData({ email: '', password: '', name: '', company: '', accountType: 'business' });
+      } else {
+        alert(data.error || 'Signup failed');
+      }
+    } catch (error) {
+      alert('Signup error: ' + error.message);
+    }
   };
 
   const handleSearch = () => {
