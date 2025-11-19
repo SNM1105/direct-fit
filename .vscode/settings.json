@@ -1,0 +1,18 @@
+{
+  // Treat plain CSS files as PostCSS so Tailwind at-rules are recognized by the editor
+  "files.associations": {
+    "*.css": "postcss"
+  },
+  // Disable unknown at-rule linting in the built-in CSS language server
+  "css.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  // Optional: enable Tailwind IntelliSense recommendations
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "javascript": "javascript",
+    "javascriptreact": "html",
+    "typescriptreact": "html",
+    "css": "postcss"
+  }
+}
