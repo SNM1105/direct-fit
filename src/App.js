@@ -15,7 +15,8 @@ import {
   Trash2,
   Wrench,
   Building2,
-  UserCircle
+  UserCircle,
+  Menu
 } from 'lucide-react';
 import logo from './logo.png';
 
@@ -168,20 +169,20 @@ function SubcategoryImage({ name }) {
   const src = candidates[idx];
 
   return (
-    <div className="flex-shrink-0 mr-4">
+    <div className="flex-shrink-0 sm:mr-4 mr-0">
       {!failed ? (
         <img
           src={src}
           alt={name}
-          className="h-28 w-28 object-contain rounded bg-white p-2 shadow-sm"
+          className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 object-contain rounded shadow-sm"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
           }}
         />
       ) : (
-        // Neutral placeholder when no image is available (no emoji/icons)
-        <div className="h-28 w-28 bg-gray-100 rounded" />
+        // Neutral placeholder when no image is available (transparent, outlined)
+        <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 rounded border border-gray-200" />
       )}
     </div>
   );
@@ -211,7 +212,6 @@ const partnerBrands = [
 // Helper to resolve a brand name to a public logo path. Put SVG/PNG files
 // in `public/brands` named like `ac-delco.svg`, `bosch.svg`, etc.
 const brandLogoFilename = (brand) => brand.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-const brandToLogo = (brand) => `/brands/${brandLogoFilename(brand)}.svg`;
 
 function BrandLogo({ brand }) {
   // Try common filename variants so files like `Bosch-Logo.png` are found.
@@ -294,19 +294,22 @@ function PartSearchInput({ partNumber, setPartNumber, onEnter }) {
 }
 
 function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header className="bg-gray-900 border-b-4 border-red-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center space-x-6">
+        <div className="flex justify-between items-center py-3">
+          <div className="flex items-center space-x-4">
             {canGoBack && (
-              <button onClick={onBack} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md">
+              <button onClick={onBack} className="text-gray-300 hover:text-yellow-400 px-2 py-1 rounded-md">
                 ← Back
               </button>
             )}
-            <button onClick={() => setCurrentPage('home')} className="flex items-center space-x-3 group">
-              <img src={logo} alt="Direct Fit Automotive Solutions" className="h-12 w-auto" />
+            <button onClick={() => { setCurrentPage('home'); setMobileOpen(false); }} className="flex items-center space-x-3 group">
+              <img src={logo} alt="Direct Fit Automotive Solutions" className="h-10 w-auto" />
             </button>
+
             <nav className="hidden md:flex space-x-6">
               <button onClick={() => setCurrentPage('home')} className="text-gray-300 hover:text-yellow-400 font-medium transition">Home</button>
               <button onClick={() => setCurrentPage('about')} className="text-gray-300 hover:text-yellow-400 font-medium transition">About</button>
@@ -315,7 +318,12 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
               )}
             </nav>
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center space-x-3">
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-gray-300 p-2 rounded-md hover:bg-gray-800">
+              <Menu className="h-6 w-6" />
+            </button>
+
             <button onClick={onOpenCart} className="relative text-gray-300 hover:text-yellow-400 transition">
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (
@@ -325,19 +333,19 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
               )}
             </button>
             {isLoggedIn && (
-              <button onClick={onOpenOrders} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md">
+              <button onClick={onOpenOrders} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md hidden sm:inline-flex">
                 <Package className="h-5 w-5" />
               </button>
             )}
             {isLoggedIn ? (
-              <div className="flex items-center space-x-3">
+              <div className="hidden sm:flex items-center space-x-3">
                 <span className="text-sm text-gray-300">Hi, <span className="text-yellow-400 font-semibold">{currentUserName}</span></span>
                 <button onClick={onLogoutClick} className="text-red-500 hover:text-red-400 transition">
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>
             ) : (
-              <button onClick={onLoginClick} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center font-semibold">
+              <button onClick={onLoginClick} className="hidden sm:inline-flex bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition items-center font-semibold">
                 <User className="h-5 w-5 mr-2" />
                 Login
               </button>
@@ -345,6 +353,29 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
           </div>
         </div>
       </div>
+
+      {/* Mobile nav panel */}
+      {mobileOpen && (
+        <div className="md:hidden bg-gray-800 border-t border-gray-700">
+          <div className="px-4 py-3 space-y-2">
+            <button onClick={() => { setCurrentPage('home'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Home</button>
+            <button onClick={() => { setCurrentPage('about'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">About</button>
+            {isLoggedIn && currentUserName === 'Admin' && (
+              <button onClick={() => { setCurrentPage('admin'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Admin Panel</button>
+            )}
+            {isLoggedIn ? (
+              <div className="pt-2 border-t border-gray-700">
+                <button onClick={onOpenOrders} className="w-full text-left text-gray-200 py-2">Orders</button>
+                <button onClick={onLogoutClick} className="w-full text-left text-gray-200 py-2">Logout</button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-gray-700">
+                <button onClick={() => { onLoginClick(); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Login</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -380,12 +411,12 @@ function HomePage(props) {
       <div className="bg-gradient-to-r from-gray-900 via-red-900 to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-3">Direct Fit Automotive Solutions</h1>
-            <p className="text-yellow-300 text-lg">Supplier-Direct Pricing for Automotive Professionals</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">Direct Fit Automotive Solutions</h1>
+            <p className="text-yellow-300 text-base sm:text-lg md:text-xl">Supplier-Direct Pricing for Automotive Professionals</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-2xl p-6 max-w-4xl mx-auto">
-            <div className="flex space-x-4 mb-6">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
               <button
                 onClick={() => setSearchType('vehicle')}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition ${searchType === 'vehicle' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -462,9 +493,9 @@ function HomePage(props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-600 text-center">
-            <TrendingUp className="h-12 w-12 text-red-600 mx-auto mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+              <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-600 text-center">
+            <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-red-600 mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Supplier Direct</h3>
             <p className="text-sm text-gray-600">Wholesale pricing with custom margins</p>
           </div>
@@ -501,7 +532,7 @@ function HomePage(props) {
             <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Brands We Carry</h2>
               <p className="text-gray-600 mb-4">We partner with the industry's mo st trusted manufacturers to bring you quality parts you can rely on.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-stretch">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 items-stretch">
                 {partnerBrands.map((brand, idx) => (
                   <div key={idx} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 p-4 hover:border-red-600 transition">
                     <div className="h-12 w-full flex items-center justify-center">
@@ -591,12 +622,12 @@ function CategoriesPage({ categories, onSelectCategory, year, setYear, make, set
                 <button
                   key={subName}
                   onClick={() => onSelectCategory(catName, subName)}
-                  className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition"
+                  className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition h-full overflow-hidden min-h-[6rem] sm:min-h-[7rem] md:min-h-[9rem]"
                 >
-                  <div className="flex items-center">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-start space-y-2 sm:space-y-0 sm:space-x-4 h-full">
                     <SubcategoryImage name={subName} />
 
-                    <div className="font-medium">{subName}</div>
+                    <div className="font-medium text-center sm:text-left break-words">{subName}</div>
                   </div>
                 </button>
               ))}
@@ -654,7 +685,7 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">Search Results ({searchResults.length} parts found)</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {searchResults.map(part => (
           <div key={part.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-red-600">
             <div className="flex justify-between items-start mb-3">
@@ -684,7 +715,7 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
 
 function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handleCheckout }) {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl md:max-w-6xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">Shopping Cart</h2>
       {cart.length === 0 ? (
         <div className="bg-white rounded-lg shadow-lg p-12 text-center">
@@ -694,9 +725,9 @@ function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handle
       ) : (
         <div>
           <div className="bg-white rounded-lg shadow-lg divide-y">
-            {cart.map(item => (
-              <div key={item.id} className="p-6 flex items-center justify-between">
-                <div className="flex-1">
+              {cart.map(item => (
+              <div key={item.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between">
+                <div className="flex-1 w-full md:w-auto mb-4 md:mb-0">
                   <h3 className="font-semibold">{item.name}</h3>
                   <p className="text-sm text-gray-500 font-mono">{item.partNumber}</p>
                   <p className="text-red-600 font-semibold mt-1">${calculatePrice(item.price)}</p>
@@ -1351,7 +1382,7 @@ export default function DirectFitAutomotive() {
       <footer className="bg-gray-900 text-white py-8 mt-12 border-t-4 border-red-600">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-center mb-4">
-            <img src={logo} alt="Direct Fit Automotive Solutions" className="h-16 w-auto" />
+            <img src={logo} alt="Direct Fit Automotive Solutions" className="h-12 md:h-16 w-auto" />
           </div>
           <p className="text-gray-400 text-center">© {new Date().getFullYear()} Direct Fit Automotive Solutions. All rights reserved.</p>
           <p className="text-sm text-gray-500 text-center mt-2">Demo Mode - Ready for supplier integration</p>
