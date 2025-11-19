@@ -104,6 +104,93 @@ const categoryStructure = {
   }
 };
 
+// Small emoji icon mapping for subcategories. Add or adjust icons here.
+const subcategoryIcons = {
+  'Engine Components': '🔧',
+  'Exhaust Systems': '♨️',
+  'Brakes': '🛑',
+  'Air Intake & Filters': '🌬️',
+  'Fuel System': '⛽',
+  'Ignition System': '⚡',
+  'Cooling System': '❄️',
+  'Transmission': '🔩',
+  'Headlights': '💡',
+  'Tail Lights': '🔴',
+  'Interior Lighting': '💡',
+  'Fog Lights': '🌫️',
+  'Off-Road Lighting': '🚨',
+  'Seating': '🪑',
+  'Floor Protection': '🧾',
+  'Steering Wheel': '🛞',
+  'Dashboard & Console': '🎛️',
+  'Comfort & Convenience': '✨',
+  'Electronics': '🔌',
+  'Protection': '🛡️',
+  'Aerodynamics': '🪶',
+  'Roof Accessories': '🚙',
+  'Windshield & Windows': '🪟',
+  'Mirrors': '🔍',
+  'Grilles & Trim': '🎚️',
+  'Wheels': '🛞',
+  'Tires': '🏁',
+  'Wheel Accessories': '🔩',
+  'Tire Accessories': '🧰',
+  'Suspension': '↕️',
+  'Panels': '🪚',
+  'Glass': '🔲',
+  'Mounting Hardware': '📎',
+  'Charging System': '🔋',
+  'Sensors': '📡',
+  'Wiring': '🔌',
+  'Lighting Electrical': '💡',
+  'A/C Components': '❄️',
+  'Heating': '🔥',
+  'Controls': '🎛️'
+};
+
+const getSubcategoryIcon = (name) => subcategoryIcons[name] || '📦';
+
+// Subcategory image auto-resolver. Put files in `public/category-images/` named like
+// `engine-components.png` or `engine-components.svg`. The resolver will try common
+// filename variants and extensions. If none found, it falls back to the emoji icon.
+const subcategoryFilenameBase = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+function SubcategoryImage({ name }) {
+  const exts = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
+  const base = subcategoryFilenameBase(name);
+  const basenames = [base, `${base}-photo`, `${base}-image`, base.replace(/-/g, '')];
+  const candidates = [];
+  basenames.forEach(b => exts.forEach(ext => candidates.push(`/category-images/${b}.${ext}`)));
+
+  const [idx, setIdx] = useState(0);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setIdx(0);
+    setFailed(false);
+  }, [name]);
+
+  if (failed) {
+    return <div className="text-2xl mr-3">{getSubcategoryIcon(name)}</div>;
+  }
+
+  const src = candidates[idx];
+
+  return (
+    <div className="flex-shrink-0 mr-3">
+      <img
+        src={src}
+        alt={name}
+        className="h-16 w-16 object-contain rounded bg-white p-1"
+        onError={() => {
+          if (idx < candidates.length - 1) setIdx(idx + 1);
+          else setFailed(true);
+        }}
+      />
+    </div>
+  );
+}
+
 // Mock data for parts (expanded with categories)
 const mockParts = [
   { id: 1, partNumber: 'BRK-45892', name: 'Front Brake Pad Set', mainCategory: 'Performance Parts', subCategory: 'Brakes', detailCategory: 'Brake Pads', price: 89.99, stock: 24, fits: ['2018-2023 Honda Accord', '2019-2023 Honda Civic'], brand: 'Brembo' },
@@ -510,7 +597,11 @@ function CategoriesPage({ categories, onSelectCategory, year, setYear, make, set
                   onClick={() => onSelectCategory(catName, subName)}
                   className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition"
                 >
-                  <div className="font-medium">{subName}</div>
+                  <div className="flex items-center">
+                    <SubcategoryImage name={subName} />
+
+                    <div className="font-medium">{subName}</div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -814,15 +905,8 @@ export default function DirectFitAutomotive() {
 
   /* --- cart --- */
   const [cart, setCart] = useState([]);
-  /* --- orders / order history --- */
-  const [orders, setOrders] = useState(() => {
-    try {
-      const raw = localStorage.getItem('orders');
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  /* --- orders / order history (kept in-memory only; persistence to user account will be implemented later) --- */
+  const [orders, setOrders] = useState([]);
 
   /* --- login/signup modal --- */
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -874,13 +958,8 @@ export default function DirectFitAutomotive() {
   }, [make]);
 
   // Persist orders to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem('orders', JSON.stringify(orders));
-    } catch (e) {
-      console.error('Failed to save orders to localStorage', e);
-    }
-  }, [orders]);
+  // NOTE: persistence to localStorage removed — orders should be stored on the user's account/server
+  // when that feature is available. Orders remain in-memory for the current session only.
 
   /* --- handlers --- */
   const handleLogin = () => {
