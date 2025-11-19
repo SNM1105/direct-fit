@@ -15,7 +15,8 @@ import {
   Trash2,
   Wrench,
   Building2,
-  UserCircle
+  UserCircle,
+  Menu
 } from 'lucide-react';
 import logo from './logo.png';
 
@@ -173,7 +174,7 @@ function SubcategoryImage({ name }) {
         <img
           src={src}
           alt={name}
-          className="h-28 w-28 object-contain rounded shadow-sm"
+          className="h-20 w-20 sm:h-28 sm:w-28 object-contain rounded shadow-sm"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
@@ -181,7 +182,7 @@ function SubcategoryImage({ name }) {
         />
       ) : (
         // Neutral placeholder when no image is available (transparent, outlined)
-        <div className="h-28 w-28 rounded border border-gray-200" />
+        <div className="h-20 w-20 sm:h-28 sm:w-28 rounded border border-gray-200" />
       )}
     </div>
   );
@@ -294,19 +295,22 @@ function PartSearchInput({ partNumber, setPartNumber, onEnter }) {
 }
 
 function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header className="bg-gray-900 border-b-4 border-red-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center space-x-6">
+        <div className="flex justify-between items-center py-3">
+          <div className="flex items-center space-x-4">
             {canGoBack && (
-              <button onClick={onBack} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md">
+              <button onClick={onBack} className="text-gray-300 hover:text-yellow-400 px-2 py-1 rounded-md">
                 ← Back
               </button>
             )}
-            <button onClick={() => setCurrentPage('home')} className="flex items-center space-x-3 group">
-              <img src={logo} alt="Direct Fit Automotive Solutions" className="h-12 w-auto" />
+            <button onClick={() => { setCurrentPage('home'); setMobileOpen(false); }} className="flex items-center space-x-3 group">
+              <img src={logo} alt="Direct Fit Automotive Solutions" className="h-10 w-auto" />
             </button>
+
             <nav className="hidden md:flex space-x-6">
               <button onClick={() => setCurrentPage('home')} className="text-gray-300 hover:text-yellow-400 font-medium transition">Home</button>
               <button onClick={() => setCurrentPage('about')} className="text-gray-300 hover:text-yellow-400 font-medium transition">About</button>
@@ -315,7 +319,12 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
               )}
             </nav>
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center space-x-3">
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-gray-300 p-2 rounded-md hover:bg-gray-800">
+              <Menu className="h-6 w-6" />
+            </button>
+
             <button onClick={onOpenCart} className="relative text-gray-300 hover:text-yellow-400 transition">
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (
@@ -325,19 +334,19 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
               )}
             </button>
             {isLoggedIn && (
-              <button onClick={onOpenOrders} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md">
+              <button onClick={onOpenOrders} className="text-gray-300 hover:text-yellow-400 px-3 py-2 rounded-md hidden sm:inline-flex">
                 <Package className="h-5 w-5" />
               </button>
             )}
             {isLoggedIn ? (
-              <div className="flex items-center space-x-3">
+              <div className="hidden sm:flex items-center space-x-3">
                 <span className="text-sm text-gray-300">Hi, <span className="text-yellow-400 font-semibold">{currentUserName}</span></span>
                 <button onClick={onLogoutClick} className="text-red-500 hover:text-red-400 transition">
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>
             ) : (
-              <button onClick={onLoginClick} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center font-semibold">
+              <button onClick={onLoginClick} className="hidden sm:inline-flex bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition items-center font-semibold">
                 <User className="h-5 w-5 mr-2" />
                 Login
               </button>
@@ -345,6 +354,29 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
           </div>
         </div>
       </div>
+
+      {/* Mobile nav panel */}
+      {mobileOpen && (
+        <div className="md:hidden bg-gray-800 border-t border-gray-700">
+          <div className="px-4 py-3 space-y-2">
+            <button onClick={() => { setCurrentPage('home'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Home</button>
+            <button onClick={() => { setCurrentPage('about'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">About</button>
+            {isLoggedIn && currentUserName === 'Admin' && (
+              <button onClick={() => { setCurrentPage('admin'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Admin Panel</button>
+            )}
+            {isLoggedIn ? (
+              <div className="pt-2 border-t border-gray-700">
+                <button onClick={onOpenOrders} className="w-full text-left text-gray-200 py-2">Orders</button>
+                <button onClick={onLogoutClick} className="w-full text-left text-gray-200 py-2">Logout</button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-gray-700">
+                <button onClick={() => { onLoginClick(); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Login</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -385,7 +417,7 @@ function HomePage(props) {
           </div>
 
           <div className="bg-white rounded-lg shadow-2xl p-6 max-w-4xl mx-auto">
-            <div className="flex space-x-4 mb-6">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-6">
               <button
                 onClick={() => setSearchType('vehicle')}
                 className={`flex-1 py-3 px-4 rounded-lg font-medium transition ${searchType === 'vehicle' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -593,10 +625,10 @@ function CategoriesPage({ categories, onSelectCategory, year, setYear, make, set
                   onClick={() => onSelectCategory(catName, subName)}
                   className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition"
                 >
-                  <div className="flex items-center">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <SubcategoryImage name={subName} />
 
-                    <div className="font-medium">{subName}</div>
+                    <div className="font-medium text-center sm:text-left">{subName}</div>
                   </div>
                 </button>
               ))}
@@ -694,9 +726,9 @@ function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handle
       ) : (
         <div>
           <div className="bg-white rounded-lg shadow-lg divide-y">
-            {cart.map(item => (
-              <div key={item.id} className="p-6 flex items-center justify-between">
-                <div className="flex-1">
+              {cart.map(item => (
+              <div key={item.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between">
+                <div className="flex-1 w-full md:w-auto mb-4 md:mb-0">
                   <h3 className="font-semibold">{item.name}</h3>
                   <p className="text-sm text-gray-500 font-mono">{item.partNumber}</p>
                   <p className="text-red-600 font-semibold mt-1">${calculatePrice(item.price)}</p>
