@@ -169,12 +169,12 @@ function SubcategoryImage({ name }) {
   const src = candidates[idx];
 
   return (
-    <div className="flex-shrink-0 sm:mr-4 mr-0">
+    <div className="flex-none mb-2 sm:mb-0 sm:mr-4 mr-0">
       {!failed ? (
         <img
           src={src}
           alt={name}
-          className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 object-contain rounded shadow-sm"
+          className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 object-contain rounded shadow-sm block max-w-full"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
@@ -182,7 +182,7 @@ function SubcategoryImage({ name }) {
         />
       ) : (
         // Neutral placeholder when no image is available (transparent, outlined)
-        <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 rounded border border-gray-200" />
+        <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 rounded border border-gray-200 block" />
       )}
     </div>
   );
@@ -212,7 +212,6 @@ const partnerBrands = [
 // Helper to resolve a brand name to a public logo path. Put SVG/PNG files
 // in `public/brands` named like `ac-delco.svg`, `bosch.svg`, etc.
 const brandLogoFilename = (brand) => brand.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-const brandToLogo = (brand) => `/brands/${brandLogoFilename(brand)}.svg`;
 
 function BrandLogo({ brand }) {
   // Try common filename variants so files like `Bosch-Logo.png` are found.
@@ -623,12 +622,12 @@ function CategoriesPage({ categories, onSelectCategory, year, setYear, make, set
                 <button
                   key={subName}
                   onClick={() => onSelectCategory(catName, subName)}
-                  className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition"
+                  className="text-left p-3 bg-gray-50 rounded border border-gray-100 hover:bg-red-50 hover:border-red-200 transition h-full overflow-hidden min-h-[6rem] sm:min-h-[7rem] md:min-h-[9rem]"
                 >
-                  <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-start space-y-2 sm:space-y-0 sm:space-x-4 h-full">
                     <SubcategoryImage name={subName} />
 
-                    <div className="font-medium text-center sm:text-left">{subName}</div>
+                    <div className="font-medium text-center sm:text-left break-words">{subName}</div>
                   </div>
                 </button>
               ))}
