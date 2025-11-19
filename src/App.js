@@ -173,15 +173,15 @@ function SubcategoryImage({ name }) {
         <img
           src={src}
           alt={name}
-          className="h-28 w-28 object-contain rounded bg-white p-2 shadow-sm"
+          className="h-28 w-28 object-contain rounded shadow-sm"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
           }}
         />
       ) : (
-        // Neutral placeholder when no image is available (no emoji/icons)
-        <div className="h-28 w-28 bg-gray-100 rounded" />
+        // Neutral placeholder when no image is available (transparent, outlined)
+        <div className="h-28 w-28 rounded border border-gray-200" />
       )}
     </div>
   );
