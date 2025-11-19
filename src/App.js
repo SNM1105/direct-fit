@@ -168,12 +168,12 @@ function SubcategoryImage({ name }) {
   const src = candidates[idx];
 
   return (
-    <div className="flex-shrink-0 mr-3">
+    <div className="flex-shrink-0 mr-4">
       {!failed ? (
         <img
           src={src}
           alt={name}
-          className="h-16 w-16 object-contain rounded bg-white p-1"
+          className="h-28 w-28 object-contain rounded bg-white p-2 shadow-sm"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
@@ -181,7 +181,7 @@ function SubcategoryImage({ name }) {
         />
       ) : (
         // Neutral placeholder when no image is available (no emoji/icons)
-        <div className="h-16 w-16 bg-gray-100 rounded mr-3" />
+        <div className="h-28 w-28 bg-gray-100 rounded" />
       )}
     </div>
   );
