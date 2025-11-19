@@ -169,12 +169,12 @@ function SubcategoryImage({ name }) {
   const src = candidates[idx];
 
   return (
-    <div className="flex-shrink-0 mr-4">
+    <div className="flex-shrink-0 sm:mr-4 mr-0">
       {!failed ? (
         <img
           src={src}
           alt={name}
-          className="h-20 w-20 sm:h-28 sm:w-28 object-contain rounded shadow-sm"
+          className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 object-contain rounded shadow-sm"
           onError={() => {
             if (idx < candidates.length - 1) setIdx(idx + 1);
             else setFailed(true);
@@ -182,7 +182,7 @@ function SubcategoryImage({ name }) {
         />
       ) : (
         // Neutral placeholder when no image is available (transparent, outlined)
-        <div className="h-20 w-20 sm:h-28 sm:w-28 rounded border border-gray-200" />
+        <div className="h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32 xl:h-36 xl:w-36 rounded border border-gray-200" />
       )}
     </div>
   );
@@ -412,8 +412,8 @@ function HomePage(props) {
       <div className="bg-gradient-to-r from-gray-900 via-red-900 to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-3">Direct Fit Automotive Solutions</h1>
-            <p className="text-yellow-300 text-lg">Supplier-Direct Pricing for Automotive Professionals</p>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3">Direct Fit Automotive Solutions</h1>
+            <p className="text-yellow-300 text-base sm:text-lg md:text-xl">Supplier-Direct Pricing for Automotive Professionals</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-2xl p-6 max-w-4xl mx-auto">
@@ -494,9 +494,9 @@ function HomePage(props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-600 text-center">
-            <TrendingUp className="h-12 w-12 text-red-600 mx-auto mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+              <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-red-600 text-center">
+            <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-red-600 mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Supplier Direct</h3>
             <p className="text-sm text-gray-600">Wholesale pricing with custom margins</p>
           </div>
@@ -533,7 +533,7 @@ function HomePage(props) {
             <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Brands We Carry</h2>
               <p className="text-gray-600 mb-4">We partner with the industry's mo st trusted manufacturers to bring you quality parts you can rely on.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-stretch">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 items-stretch">
                 {partnerBrands.map((brand, idx) => (
                   <div key={idx} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 p-4 hover:border-red-600 transition">
                     <div className="h-12 w-full flex items-center justify-center">
@@ -618,7 +618,7 @@ function CategoriesPage({ categories, onSelectCategory, year, setYear, make, set
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 mt-2">
               {Object.entries(catData.subcategories).map(([subName]) => (
                 <button
                   key={subName}
@@ -686,7 +686,7 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">Search Results ({searchResults.length} parts found)</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {searchResults.map(part => (
           <div key={part.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-red-600">
             <div className="flex justify-between items-start mb-3">
@@ -716,7 +716,7 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
 
 function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handleCheckout }) {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl md:max-w-6xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6">Shopping Cart</h2>
       {cart.length === 0 ? (
         <div className="bg-white rounded-lg shadow-lg p-12 text-center">
@@ -1383,7 +1383,7 @@ export default function DirectFitAutomotive() {
       <footer className="bg-gray-900 text-white py-8 mt-12 border-t-4 border-red-600">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-center mb-4">
-            <img src={logo} alt="Direct Fit Automotive Solutions" className="h-16 w-auto" />
+            <img src={logo} alt="Direct Fit Automotive Solutions" className="h-12 md:h-16 lg:h-20 w-auto" />
           </div>
           <p className="text-gray-400 text-center">© {new Date().getFullYear()} Direct Fit Automotive Solutions. All rights reserved.</p>
           <p className="text-sm text-gray-500 text-center mt-2">Demo Mode - Ready for supplier integration</p>
