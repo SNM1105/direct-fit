@@ -150,43 +150,58 @@ const subcategoryIcons = {
 
 const getSubcategoryIcon = (name) => subcategoryIcons[name] || '📦';
 
-// Subcategory image auto-resolver. Put files in `public/category-images/` named like
-// `engine-components.png` or `engine-components.svg`. The resolver will try common
-// filename variants and extensions. If none found, it falls back to the emoji icon.
+// Explicit mapping for subcategory -> exact image filename you uploaded.
+// Add entries here to hardcode images and avoid emoji/icons.
+const explicitSubcategoryImage = {
+  'Engine Components': '/category-images/engine-components.png',
+  'Exhaust Systems': '/category-images/exhaust-systems.png',
+  'Tires': '/category-images/tires.png',
+  'Air Intake & Filters': '/category-images/air-intake.png'
+};
+
+// Subcategory image auto-resolver (tries explicit mapping first; then common candidates).
 const subcategoryFilenameBase = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 function SubcategoryImage({ name }) {
+  // If an explicit mapping exists, use it directly
+  const explicit = explicitSubcategoryImage[name];
   const exts = ['png', 'jpg', 'jpeg', 'svg', 'webp'];
-  const base = subcategoryFilenameBase(name);
-  const basenames = [base, `${base}-photo`, `${base}-image`, base.replace(/-/g, '')];
-  const candidates = [];
-  basenames.forEach(b => exts.forEach(ext => candidates.push(`/category-images/${b}.${ext}`)));
 
   const [idx, setIdx] = useState(0);
   const [failed, setFailed] = useState(false);
+
+  // build auto candidates only if no explicit mapping
+  const candidates = explicit ? [explicit] : (() => {
+    const base = subcategoryFilenameBase(name);
+    const basenames = [base, `${base}-photo`, `${base}-image`, base.replace(/-/g, '')];
+    const out = [];
+    basenames.forEach(b => exts.forEach(ext => out.push(`/category-images/${b}.${ext}`)));
+    return out;
+  })();
 
   useEffect(() => {
     setIdx(0);
     setFailed(false);
   }, [name]);
 
-  if (failed) {
-    return <div className="text-2xl mr-3">{getSubcategoryIcon(name)}</div>;
-  }
-
   const src = candidates[idx];
 
   return (
     <div className="flex-shrink-0 mr-3">
-      <img
-        src={src}
-        alt={name}
-        className="h-16 w-16 object-contain rounded bg-white p-1"
-        onError={() => {
-          if (idx < candidates.length - 1) setIdx(idx + 1);
-          else setFailed(true);
-        }}
-      />
+      {!failed ? (
+        <img
+          src={src}
+          alt={name}
+          className="h-16 w-16 object-contain rounded bg-white p-1"
+          onError={() => {
+            if (idx < candidates.length - 1) setIdx(idx + 1);
+            else setFailed(true);
+          }}
+        />
+      ) : (
+        // Neutral placeholder when no image is available (no emoji/icons)
+        <div className="h-16 w-16 bg-gray-100 rounded mr-3" />
+      )}
     </div>
   );
 }
