@@ -43,7 +43,7 @@ const categoryStructure = {
     subcategories: {
       'Headlights': ['Headlight Assemblies', 'Headlight Bulbs', 'HID Kits', 'LED Headlights', 'Headlight Covers', 'Headlight Restoration Kits'],
       'Tail Lights': ['Tail Light Assemblies', 'Tail Light Bulbs', 'LED Tail Lights', 'Tail Light Covers', 'Third Brake Lights'],
-      'Interior Lighting': ['Dome Lights', 'Map Lights', 'Door Lights', 'Dashboard Lights', 'LED Interior Kits'],
+      'Interior Lighting': ['Dome Lights', 'Map Lights', 'Door Lights', 'Dashboard Lights', 'Ceiling Lights', 'LED Interior Kits'],
       'Signal & Marker Lights': ['Turn Signal Bulbs', 'Side Marker Lights', 'Corner Lights', 'Parking Light Assemblies'],
       'Fog Lights': ['Fog Light Assemblies', 'Fog Light Bulbs', 'Fog Light Covers', 'Fog Light Switches'],
       'Off-Road Lighting': ['Light Bars', 'Spotlights', 'Rock Lights', 'Underbody Lights'],
@@ -120,7 +120,7 @@ const explicitSubcategoryImage = {
   'Transmission': '/category-images/transmission.png',
   'Headlights': '/category-images/headlights.png',
   'Tail Lights': '/category-images/tail-lights.png',
-  'Interior Lighting': '/category-images/headlights.png',
+  'Interior Lighting': '/category-images/ceiling-light.png',
   'Signal & Marker Lights': '/category-images/signal-marker-lights.png',
   'Fog Lights': '/category-images/fog-lights.png',
   'Off-Road Lighting': '/category-images/off-road-lighting.png',
@@ -193,16 +193,146 @@ function SubcategoryImage({ name }) {
 
 // Mock data for parts (expanded with categories)
 const mockParts = [
-  { id: 1, partNumber: 'BRK-45892', name: 'Front Brake Pad Set', mainCategory: 'Performance Parts', subCategory: 'Brakes', detailCategory: 'Brake Pads', price: 89.99, stock: 24, fits: ['2018-2023 Honda Accord', '2019-2023 Honda Civic'], brand: 'Brembo' },
-  { id: 2, partNumber: 'ENG-78234', name: 'Oil Filter', mainCategory: 'Performance Parts', subCategory: 'Engine Components', detailCategory: 'Engine Gaskets', price: 12.99, stock: 156, fits: ['2015-2023 Toyota Camry', '2016-2023 Toyota Corolla'], brand: 'Bosch' },
-  { id: 3, partNumber: 'SUS-92341', name: 'Front Strut Assembly', mainCategory: 'Wheels & Tires', subCategory: 'Suspension', detailCategory: 'Struts', price: 245.50, stock: 8, fits: ['2017-2022 Ford F-150'], brand: 'Monroe' },
-  { id: 4, partNumber: 'EXH-45678', name: 'Catalytic Converter', mainCategory: 'Performance Parts', subCategory: 'Exhaust Systems', detailCategory: 'Catalytic Converters', price: 425.00, stock: 12, fits: ['2016-2020 Chevrolet Silverado'], brand: 'Walker' },
-  { id: 5, partNumber: 'ELE-23456', name: 'Alternator', mainCategory: 'Electrical & Electronics', subCategory: 'Charging System', detailCategory: 'Alternators', price: 189.99, stock: 18, fits: ['2015-2021 Nissan Altima'], brand: 'Denso' },
-  { id: 6, partNumber: 'BRK-88901', name: 'Brake Rotor Set', mainCategory: 'Performance Parts', subCategory: 'Brakes', detailCategory: 'Brake Rotors', price: 125.00, stock: 32, fits: ['2018-2023 Honda Accord'], brand: 'Brembo' },
-  { id: 7, partNumber: 'LED-19283', name: 'LED Headlight Bulbs H11', mainCategory: 'Lighting', subCategory: 'Headlights', detailCategory: 'Headlight Bulbs', price: 79.99, stock: 45, fits: ['2015-2023 Honda Civic', '2016-2023 Toyota Corolla'], brand: 'Philips' },
-  { id: 8, partNumber: 'INT-55421', name: 'All-Weather Floor Mats', mainCategory: 'Interior Accessories', subCategory: 'Floor Protection', detailCategory: 'All-Weather Mats', price: 89.99, stock: 67, fits: ['2018-2023 Honda Accord'], brand: 'WeatherTech' },
-  { id: 9, partNumber: 'EXT-77234', name: 'Rear Window Sunroof Deflector', mainCategory: 'Exterior Accessories', subCategory: 'Roof Accessories', detailCategory: 'Sunroof Deflectors', price: 45.99, stock: 23, fits: ['2017-2023 Toyota Camry'], brand: 'AVS' },
-  { id: 10, partNumber: 'WHL-33890', name: '18" Chrome Alloy Wheel', mainCategory: 'Wheels & Tires', subCategory: 'Wheels', detailCategory: 'Chrome Wheels', price: 189.99, stock: 16, fits: ['2018-2023 Ford F-150'], brand: 'American Racing' },
+  { 
+    id: 1, 
+    partNumber: 'BRK-45892', 
+    name: 'Front Brake Pad Set', 
+    mainCategory: 'Performance Parts', 
+    subCategory: 'Brakes', 
+    detailCategory: 'Brake Pads', 
+    price: 89.99, 
+    stock: 24, 
+    fits: ['2018-2023 Honda Accord', '2019-2023 Honda Civic', '2020-2023 Honda CR-V'], 
+    brand: 'Brembo',
+    images: ['/product-images/brake-pads-1.jpg', '/product-images/brake-pads-2.jpg', '/product-images/brake-pads-3.jpg'],
+    description: 'Premium ceramic brake pads designed for superior stopping power and reduced brake dust. Features low-noise formula and extended pad life. Perfect for daily driving and spirited performance.'
+  },
+  { 
+    id: 2, 
+    partNumber: 'ENG-78234', 
+    name: 'Oil Filter', 
+    mainCategory: 'Performance Parts', 
+    subCategory: 'Engine Components', 
+    detailCategory: 'Engine Gaskets', 
+    price: 12.99, 
+    stock: 156, 
+    fits: ['2015-2023 Toyota Camry', '2016-2023 Toyota Corolla', '2017-2023 Toyota RAV4'], 
+    brand: 'Bosch',
+    images: ['/product-images/oil-filter-1.jpg'],
+    description: 'High-efficiency oil filter with premium filtration media. Captures 99% of harmful contaminants while maintaining optimal oil flow. Recommended replacement interval: 5,000 miles.'
+  },
+  { 
+    id: 3, 
+    partNumber: 'SUS-92341', 
+    name: 'Front Strut Assembly', 
+    mainCategory: 'Wheels & Tires', 
+    subCategory: 'Suspension', 
+    detailCategory: 'Struts', 
+    price: 245.50, 
+    stock: 8, 
+    fits: ['2017-2022 Ford F-150', '2018-2022 Ford F-150 4WD'], 
+    brand: 'Monroe',
+    images: ['/product-images/strut-1.jpg', '/product-images/strut-2.jpg'],
+    description: 'Complete strut assembly with premium gas-charged shock absorber. Includes coil spring, mount, and bearing plate for easy installation. Restores original ride quality and handling.'
+  },
+  { 
+    id: 4, 
+    partNumber: 'EXH-45678', 
+    name: 'Catalytic Converter', 
+    mainCategory: 'Performance Parts', 
+    subCategory: 'Exhaust Systems', 
+    detailCategory: 'Catalytic Converters', 
+    price: 425.00, 
+    stock: 12, 
+    fits: ['2016-2020 Chevrolet Silverado', '2016-2020 GMC Sierra'], 
+    brand: 'Walker',
+    images: ['/product-images/catalytic-converter-1.jpg'],
+    description: 'EPA-compliant direct-fit catalytic converter. Features OE-style design for easy installation and meets all federal emissions standards. Includes necessary gaskets and hardware.'
+  },
+  { 
+    id: 5, 
+    partNumber: 'ELE-23456', 
+    name: 'Alternator', 
+    mainCategory: 'Electrical & Electronics', 
+    subCategory: 'Charging System', 
+    detailCategory: 'Alternators', 
+    price: 189.99, 
+    stock: 18, 
+    fits: ['2015-2021 Nissan Altima', '2016-2021 Nissan Maxima'], 
+    brand: 'Denso',
+    images: ['/product-images/alternator-1.jpg', '/product-images/alternator-2.jpg'],
+    description: 'Remanufactured alternator with 100% new bearings, brushes, and regulators. Tested to OE specifications. 140-amp output ensures reliable charging for all electrical systems.'
+  },
+  { 
+    id: 6, 
+    partNumber: 'BRK-88901', 
+    name: 'Brake Rotor Set', 
+    mainCategory: 'Performance Parts', 
+    subCategory: 'Brakes', 
+    detailCategory: 'Brake Rotors', 
+    price: 125.00, 
+    stock: 32, 
+    fits: ['2018-2023 Honda Accord', '2019-2023 Honda Insight'], 
+    brand: 'Brembo',
+    images: ['/product-images/brake-rotor-1.jpg', '/product-images/brake-rotor-2.jpg'],
+    description: 'High-carbon content brake rotors for maximum heat dissipation. Precision-balanced and machine-finished for smooth, vibration-free braking. Sold as a pair (2 rotors).'
+  },
+  { 
+    id: 7, 
+    partNumber: 'LED-19283', 
+    name: 'LED Headlight Bulbs H11', 
+    mainCategory: 'Lighting', 
+    subCategory: 'Headlights', 
+    detailCategory: 'Headlight Bulbs', 
+    price: 79.99, 
+    stock: 45, 
+    fits: ['2015-2023 Honda Civic', '2016-2023 Toyota Corolla', '2017-2023 Mazda 3'], 
+    brand: 'Philips',
+    images: ['/product-images/led-bulb-1.jpg', '/product-images/led-bulb-2.jpg', '/product-images/led-bulb-3.jpg'],
+    description: '6000K bright white LED headlight bulbs with 250% more visibility. Plug-and-play installation, no modifications required. Built-in cooling fan ensures long bulb life. Sold as a pair.'
+  },
+  { 
+    id: 8, 
+    partNumber: 'INT-55421', 
+    name: 'All-Weather Floor Mats', 
+    mainCategory: 'Interior Accessories', 
+    subCategory: 'Floor Protection', 
+    detailCategory: 'All-Weather Mats', 
+    price: 89.99, 
+    stock: 67, 
+    fits: ['2018-2023 Honda Accord'], 
+    brand: 'WeatherTech',
+    images: ['/product-images/floor-mats-1.jpg', '/product-images/floor-mats-2.jpg'],
+    description: 'Laser-measured custom-fit floor liners with raised edges to contain spills and debris. Made from odorless, eco-friendly thermoplastic. Easy to clean and install. Set of 4.'
+  },
+  { 
+    id: 9, 
+    partNumber: 'EXT-77234', 
+    name: 'Rear Window Sunroof Deflector', 
+    mainCategory: 'Exterior Accessories', 
+    subCategory: 'Roof Accessories', 
+    detailCategory: 'Sunroof Deflectors', 
+    price: 45.99, 
+    stock: 23, 
+    fits: ['2017-2023 Toyota Camry', '2018-2023 Toyota Avalon'], 
+    brand: 'AVS',
+    images: ['/product-images/deflector-1.jpg'],
+    description: 'Aerodynamic sunroof deflector reduces wind noise and allows fresh air circulation even in light rain. Easy no-drill installation with 3M adhesive. Dark smoke tint complements any exterior.'
+  },
+  { 
+    id: 10, 
+    partNumber: 'WHL-33890', 
+    name: '18" Chrome Alloy Wheel', 
+    mainCategory: 'Wheels & Tires', 
+    subCategory: 'Wheels', 
+    detailCategory: 'Chrome Wheels', 
+    price: 189.99, 
+    stock: 16, 
+    fits: ['2018-2023 Ford F-150', '2019-2023 Ford Ranger'], 
+    brand: 'American Racing',
+    images: ['/product-images/wheel-1.jpg', '/product-images/wheel-2.jpg'],
+    description: '18x8.5 chrome alloy wheel with 6x135mm bolt pattern. Load-rated for trucks and SUVs. Triple chrome-plated finish resists corrosion. Price is per wheel.'
+  },
 ];
 
 // Brands we work with
@@ -296,7 +426,7 @@ function PartSearchInput({ partNumber, setPartNumber, onEnter }) {
   );
 }
 
-function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack }) {
+function Header({ cartCount, isLoggedIn, currentUserName, currentUser, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -316,8 +446,8 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
             <nav className="hidden md:flex space-x-6">
               <button onClick={() => setCurrentPage('home')} className="text-gray-300 hover:text-yellow-400 font-medium transition">Home</button>
               <button onClick={() => setCurrentPage('about')} className="text-gray-300 hover:text-yellow-400 font-medium transition">About</button>
-              {isLoggedIn && currentUserName === 'Admin' && (
-                <button onClick={() => setCurrentPage('admin')} className="text-gray-300 hover:text-yellow-400 font-medium transition">Admin Panel</button>
+              {isLoggedIn && currentUser?.isAdmin && (
+                <button onClick={() => setCurrentPage('admin')} className="text-gray-300 hover:text-yellow-400 font-medium transition">Admin</button>
               )}
             </nav>
           </div>
@@ -363,8 +493,8 @@ function Header({ cartCount, isLoggedIn, currentUserName, onLoginClick, onLogout
           <div className="px-4 py-3 space-y-2">
             <button onClick={() => { setCurrentPage('home'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Home</button>
             <button onClick={() => { setCurrentPage('about'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">About</button>
-            {isLoggedIn && currentUserName === 'Admin' && (
-              <button onClick={() => { setCurrentPage('admin'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Admin Panel</button>
+            {isLoggedIn && currentUser?.isAdmin && (
+              <button onClick={() => { setCurrentPage('admin'); setMobileOpen(false); }} className="w-full text-left text-gray-200 py-2">Admin</button>
             )}
             {isLoggedIn ? (
               <div className="pt-2 border-t border-gray-700">
@@ -520,34 +650,32 @@ function HomePage(props) {
         </div>
 
         {!isLoggedIn && (
-          <>
-            <div className="bg-gradient-to-r from-gray-900 to-red-900 rounded-lg p-8 text-center text-white shadow-xl">
-              <Wrench className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4">Professional Membership Required</h2>
-              <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                Get access to supplier-direct pricing, bulk ordering, and dedicated account management.
-              </p>
-              <button className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition" onClick={() => setCurrentPage('home')}>
-                Request Access
-              </button>
-            </div>
-
-            <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Brands We Carry</h2>
-              <p className="text-gray-600 mb-4">We partner with the industry's mo st trusted manufacturers to bring you quality parts you can rely on.</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 items-stretch">
-                {partnerBrands.map((brand, idx) => (
-                  <div key={idx} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 p-4 hover:border-red-600 transition">
-                    <div className="h-12 w-full flex items-center justify-center">
-                      <BrandLogo brand={brand} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-gray-500 mt-6 text-center">And many more industry-leading brands...</p>
-            </div>
-          </>
+          <div className="bg-gradient-to-r from-gray-900 to-red-900 rounded-lg p-8 text-center text-white shadow-xl">
+            <Wrench className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold mb-4">Professional Membership Required</h2>
+            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+              Get access to supplier-direct pricing, bulk ordering, and dedicated account management.
+            </p>
+            <button className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition" onClick={() => setCurrentPage('home')}>
+              Request Access
+            </button>
+          </div>
         )}
+
+        <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Brands We Carry</h2>
+          <p className="text-gray-600 mb-4">We partner with the industry's most trusted manufacturers to bring you quality parts you can rely on.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 items-stretch">
+            {partnerBrands.map((brand, idx) => (
+              <div key={idx} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 p-4 hover:border-red-600 transition">
+                <div className="h-12 w-full flex items-center justify-center">
+                  <BrandLogo brand={brand} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-gray-500 mt-6 text-center">And many more industry-leading brands...</p>
+        </div>
       </div>
     </div>
   );
@@ -684,13 +812,124 @@ function VehicleSelectorWrapper({ year, setYear, make, setMake, model, setModel,
   );
 }
 
-function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
+function ProductDetailPage({ product, addToCart, calculatePrice, isLoggedIn, onBack }) {
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  if (!product) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <p className="text-center text-gray-500">Product not found</p>
+      </div>
+    );
+  }
+
+  const images = product.images || ['/product-images/placeholder.jpg'];
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <button onClick={onBack} className="mb-6 text-red-600 hover:text-red-700 font-medium flex items-center">
+        <span className="mr-2">←</span> Back to Results
+      </button>
+
+      <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Images Section */}
+          <div>
+            <div className="mb-4 bg-gray-100 rounded-lg overflow-hidden aspect-square flex items-center justify-center">
+              <img 
+                src={images[selectedImage]} 
+                alt={product.name}
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => { e.target.src = '/product-images/placeholder.jpg'; }}
+              />
+            </div>
+            {images.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`border-2 rounded-lg overflow-hidden aspect-square bg-gray-50 hover:border-red-600 transition ${
+                      selectedImage === idx ? 'border-red-600' : 'border-gray-200'
+                    }`}
+                  >
+                    <img 
+                      src={img} 
+                      alt={`${product.name} ${idx + 1}`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => { e.target.src = '/product-images/placeholder.jpg'; }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Product Info Section */}
+          <div>
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 font-mono mb-1">{product.partNumber}</p>
+              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+              <p className="text-sm text-gray-600">Brand: <span className="font-semibold">{product.brand}</span></p>
+            </div>
+
+            <div className="mb-6">
+              <span className={`inline-block px-3 py-1 rounded text-sm font-semibold ${
+                product.stock > 10 ? 'bg-green-100 text-green-800' : product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {product.stock > 10 ? `${product.stock} in stock` : product.stock > 0 ? `Only ${product.stock} left!` : 'Out of stock'}
+              </span>
+            </div>
+
+            <div className="mb-6 pb-6 border-b">
+              <p className="text-4xl font-bold text-red-600">${calculatePrice(product.price)}</p>
+              <p className="text-sm text-gray-500 mt-1">Price includes your customer margin</p>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">Description</h2>
+              <p className="text-gray-700 leading-relaxed">{product.description || 'No description available.'}</p>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">Vehicle Fitment</h2>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <ul className="space-y-1">
+                  {product.fits.map((fit, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <span className="text-red-600 mr-2">✓</span>
+                      <span className="text-gray-700">{fit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => addToCart(product)} 
+              disabled={product.stock === 0}
+              className="w-full bg-red-600 text-white py-4 rounded-lg hover:bg-red-700 transition font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn, onViewProduct }) {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold mb-6">Search Results ({searchResults.length} parts found)</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {searchResults.map(part => (
-          <div key={part.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-red-600">
+          <div 
+            key={part.id} 
+            onClick={() => onViewProduct(part)}
+            className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition border-l-4 border-red-600 cursor-pointer"
+          >
             <div className="flex justify-between items-start mb-3">
               <div>
                 <p className="text-sm text-gray-500 font-mono">{part.partNumber}</p>
@@ -705,7 +944,10 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
               <div>
                 <p className="text-2xl font-bold text-red-600">${calculatePrice(part.price)}</p>
               </div>
-              <button onClick={() => addToCart(part)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-semibold">
+              <button 
+                onClick={(e) => { e.stopPropagation(); addToCart(part); }} 
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-semibold"
+              >
                 Add to Cart
               </button>
             </div>
@@ -717,8 +959,12 @@ function ResultsPage({ searchResults, addToCart, calculatePrice, isLoggedIn }) {
 }
 
 function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handleCheckout }) {
+  const getCartTotal = () => {
+    return cart.reduce((sum, item) => sum + (parseFloat(calculatePrice(item.price)) * item.quantity), 0).toFixed(2);
+  };
+
   return (
-    <div className="max-w-4xl md:max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-4xl md:max-w-6xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold mb-6">Shopping Cart</h2>
       {cart.length === 0 ? (
         <div className="bg-white rounded-lg shadow-lg p-12 text-center">
@@ -756,7 +1002,7 @@ function CartPage({ cart, updateQuantity, removeFromCart, calculatePrice, handle
           <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Total:</span>
-              <span className="text-2xl font-bold text-red-600">${cart.reduce((sum, item) => sum + (parseFloat(((1 + item.margin / 100) || 1) * item.price) * item.quantity || 0), 0).toFixed(2)}</span>
+              <span className="text-2xl font-bold text-red-600">${getCartTotal()}</span>
             </div>
             <button onClick={handleCheckout} className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition">Proceed to Checkout</button>
           </div>
@@ -822,10 +1068,181 @@ function OrdersPage({ orders, onReorder }) {
   );
 }
 
-function AdminPage({ users, setUsers }) {
+function AdminPage() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(null);
+  const [editingMargins, setEditingMargins] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bulkAdjustment, setBulkAdjustment] = useState('');
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/admin/users`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users);
+        // Initialize editing margins
+        const margins = {};
+        data.users.forEach(u => margins[u.id] = u.margin);
+        setEditingMargins(margins);
+      } else {
+        alert('Failed to load users: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      alert('Error fetching users: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const updateMargin = async (userId) => {
+    const newMargin = editingMargins[userId];
+    if (newMargin === undefined || newMargin < 0 || newMargin > 100) {
+      alert('Please enter a valid margin between 0 and 100');
+      return;
+    }
+    
+    setUpdating(userId);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/admin/users/${userId}/margin`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ margin: parseFloat(newMargin) })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, margin: parseFloat(newMargin) } : u));
+        alert('Margin updated successfully!');
+      } else {
+        alert('Failed to update margin: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error updating margin:', error);
+      alert('Error updating margin: ' + error.message);
+    }
+    setUpdating(null);
+  };
+
+  const applyBulkAdjustment = async () => {
+    const adjustment = parseFloat(bulkAdjustment);
+    if (isNaN(adjustment)) {
+      alert('Please enter a valid number for bulk adjustment');
+      return;
+    }
+
+    if (!window.confirm(`This will adjust all user margins by ${adjustment > 0 ? '+' : ''}${adjustment}%. Continue?`)) {
+      return;
+    }
+
+    setBulkUpdating(true);
+    const token = localStorage.getItem('token');
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const user of users) {
+      const newMargin = Math.max(0, Math.min(100, user.margin + adjustment));
+      
+      try {
+        const response = await fetch(`${API_BASE}/admin/users/${user.id}/margin`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ margin: newMargin })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      } catch (error) {
+        console.error('Error updating user:', user.email, error);
+        errorCount++;
+      }
+    }
+
+    setBulkUpdating(false);
+    setBulkAdjustment('');
+    
+    if (errorCount === 0) {
+      alert(`Successfully updated ${successCount} user margins!`);
+    } else {
+      alert(`Updated ${successCount} users. ${errorCount} failed.`);
+    }
+    
+    // Refresh the user list
+    fetchUsers();
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <p className="text-center text-gray-500">Loading users...</p>
+      </div>
+    );
+  }
+
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 bg-gray-50 min-h-screen">g-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold mb-6">Admin Panel - User Management</h2>
+      
+      {/* Bulk Margin Adjustment */}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Bulk Margin Adjustment</h3>
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-600">Adjust all margins by:</span>
+          <input
+            type="number"
+            value={bulkAdjustment}
+            onChange={(e) => setBulkAdjustment(e.target.value)}
+            placeholder="e.g., -1 or +2"
+            disabled={bulkUpdating}
+            className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white text-gray-900 disabled:bg-gray-100"
+            step="0.5"
+          />
+          <span className="text-sm text-gray-600">%</span>
+          <button
+            onClick={applyBulkAdjustment}
+            disabled={bulkUpdating || !bulkAdjustment}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition font-medium"
+          >
+            {bulkUpdating ? 'Updating...' : 'Apply to All'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">Note: Margins will be clamped between 0% and 100%</p>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name or email..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-gray-900"
+        />
+      </div>
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-900 text-white">
@@ -834,38 +1251,43 @@ function AdminPage({ users, setUsers }) {
               <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase">Account Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase">Margin %</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Subscription</th>
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase">Created</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {users.filter(u => u.type !== 'admin').map(user => (
+            {filteredUsers.map(user => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 font-medium">{user.name}</td>
                 <td className="px-6 py-4">{user.email}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.accountType === 'business' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                    {user.accountType}
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.account_type === 'business' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
+                    {user.account_type}
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <input
-                    type="number"
-                    value={user.margin}
-                    onChange={(e) => {
-                      const newMargin = parseFloat(e.target.value || 0);
-                      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, margin: newMargin } : u));
-                    }}
-                    className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-red-500 bg-white text-gray-900"
-                  /> %
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      value={editingMargins[user.id] !== undefined ? editingMargins[user.id] : user.margin}
+                      onChange={(e) => setEditingMargins(prev => ({ ...prev, [user.id]: e.target.value }))}
+                      disabled={updating === user.id}
+                      className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-red-500 bg-white text-gray-900 disabled:bg-gray-100"
+                      step="0.5"
+                      min="0"
+                      max="100"
+                    />
+                    <span>%</span>
+                    <button
+                      onClick={() => updateMargin(user.id)}
+                      disabled={updating === user.id}
+                      className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:bg-gray-400 transition"
+                    >
+                      {updating === user.id ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.subscription === 'active' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                    {user.subscription}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-red-600 hover:text-red-800 text-sm font-medium">Edit</button>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  {new Date(user.created_at).toLocaleDateString()}
                 </td>
               </tr>
             ))}
@@ -876,17 +1298,15 @@ function AdminPage({ users, setUsers }) {
   );
 }
 
+
+
+
 /* ----------------------
    Main App
    ---------------------- */
 
 export default function DirectFitAutomotive() {
-  /* --- Authentication / users --- */
-  const [users, setUsers] = useState([
-    { id: 1, email: 'demo@mechanic.com', password: 'demo123', name: 'Demo Mechanic Shop', margin: 15, type: 'user', accountType: 'business', subscription: 'active' },
-    { id: 2, email: 'personal@email.com', password: 'demo123', name: 'John Doe', margin: 20, type: 'user', accountType: 'personal', subscription: 'active' },
-    { id: 3, email: 'admin@directfit.com', password: 'admin123', name: 'Admin User', margin: 0, type: 'admin', accountType: 'admin', subscription: 'active' }
-  ]);
+  /* --- Authentication --- */
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -932,10 +1352,10 @@ export default function DirectFitAutomotive() {
 
   const [partNumber, setPartNumber] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   /* --- cart --- */
   const [cart, setCart] = useState([]);
-  /* --- orders / order history (kept in-memory only; persistence to user account will be implemented later) --- */
   const [orders, setOrders] = useState([]);
 
   /* --- login/signup modal --- */
@@ -947,6 +1367,39 @@ export default function DirectFitAutomotive() {
 
   /* --- constants --- */
   const years = Array.from({ length: 30 }, (_, i) => (new Date().getFullYear() - i).toString());
+
+  /* --- Effects: restore session on mount --- */
+  useEffect(() => {
+    const restoreSession = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          setCurrentUser(data.user);
+          setIsLoggedIn(true);
+        } else {
+          // Token is invalid, clear it
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        console.error('Session restore error:', error);
+        localStorage.removeItem('token');
+      }
+    };
+
+    restoreSession();
+  }, []);
 
   /* --- Effects: fetch makes & models --- */
   useEffect(() => {
@@ -987,10 +1440,6 @@ export default function DirectFitAutomotive() {
     fetchModels();
   }, [make]);
 
-  // Persist orders to localStorage whenever they change
-  // NOTE: persistence to localStorage removed — orders should be stored on the user's account/server
-  // when that feature is available. Orders remain in-memory for the current session only.
-
   /* --- handlers --- */
   const handleLogin = async () => {
     try {
@@ -1018,6 +1467,11 @@ export default function DirectFitAutomotive() {
   };
 
   const handleSignup = async () => {
+    if (!signupData.email || !signupData.password) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
@@ -1119,6 +1573,16 @@ export default function DirectFitAutomotive() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
+  const viewProduct = (product) => {
+    setSelectedProduct(product);
+    navigateTo('productDetail');
+  };
+
+  const backToResults = () => {
+    setSelectedProduct(null);
+    goBack();
+  };
+
   const calculatePrice = (basePrice) => {
     if (!currentUser) return basePrice.toFixed(2);
     return (basePrice * (1 + currentUser.margin / 100)).toFixed(2);
@@ -1195,6 +1659,7 @@ export default function DirectFitAutomotive() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     setIsLoggedIn(false);
     setCurrentUser(null);
     setCart([]);
@@ -1249,15 +1714,25 @@ export default function DirectFitAutomotive() {
           loadingModels={loadingModels}
         />;
       case 'results':
-        return <ResultsPage searchResults={searchResults} addToCart={addToCart} calculatePrice={calculatePrice} isLoggedIn={isLoggedIn} />;
+        return <ResultsPage searchResults={searchResults} addToCart={addToCart} calculatePrice={calculatePrice} isLoggedIn={isLoggedIn} onViewProduct={viewProduct} />;
+      case 'productDetail':
+        return <ProductDetailPage product={selectedProduct} addToCart={addToCart} calculatePrice={calculatePrice} isLoggedIn={isLoggedIn} onBack={backToResults} />;
       case 'cart':
         return <CartPage cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} calculatePrice={calculatePrice} handleCheckout={handleCheckout} />;
       case 'orders':
         return <OrdersPage orders={orders} onReorder={handleReorder} />;
       case 'admin':
-        return (isLoggedIn && currentUser && currentUser.type === 'admin') ? <AdminPage users={users} setUsers={setUsers} /> : <HomePage {...{
-          searchType, setSearchType, year, setYear, make, setMake, model, setModel, years, makes, models, loadingMakes, loadingModels, partNumber, setPartNumber, handleSearch, isLoggedIn
-        }} setCurrentPage={navigateTo} />;
+        if (!isLoggedIn || !currentUser?.isAdmin) {
+          return (
+            <div className="max-w-4xl mx-auto px-4 py-8">
+              <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+                <p className="text-gray-600">You need admin privileges to access this page.</p>
+              </div>
+            </div>
+          );
+        }
+        return <AdminPage />;
       default:
         return <HomePage {...{
           searchType, setSearchType, year, setYear, make, setMake, model, setModel, years, makes, models, loadingMakes, loadingModels, partNumber, setPartNumber, handleSearch, isLoggedIn
@@ -1273,6 +1748,7 @@ export default function DirectFitAutomotive() {
         cartCount={cartCount}
         isLoggedIn={isLoggedIn}
         currentUserName={currentUserName}
+        currentUser={currentUser}
         onLoginClick={() => { setShowAuthModal(true); setAuthMode('login'); }}
         onLogoutClick={handleLogout}
         onOpenCart={() => navigateTo('cart')}
@@ -1301,6 +1777,7 @@ export default function DirectFitAutomotive() {
                     type="email"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-gray-900"
                     placeholder="your@email.com"
                   />
@@ -1311,6 +1788,7 @@ export default function DirectFitAutomotive() {
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-gray-900"
                     placeholder="••••••••"
                   />

@@ -1,170 +1,213 @@
-# Direct Fit Automotive Backend & Frontend Guide
+# Database & Backend API Guide
 
-## Setup & Running
+## Overview
 
-### Prerequisites
+The backend uses **Supabase** (PostgreSQL) for data storage with Express.js for the API layer.
 
-- Node.js (v14+)
-- npm
+## Database Schema
 
-### Installation
+### Users Table
 
-```bash
-npm install
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  name TEXT NOT NULL,
+  company TEXT,
+  account_type TEXT DEFAULT 'personal',
+  margin REAL DEFAULT 20,
+  subscription TEXT DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-### Development (both backend & frontend)
+### Orders Table
 
-```bash
-npm run dev
+```sql
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id),
+  order_id TEXT UNIQUE NOT NULL,
+  items JSONB NOT NULL,
+  total REAL NOT NULL,
+  vehicle JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
-
-This runs both the backend server (port 5000) and React frontend (port 3000) concurrently.
-
-### Backend Only
-
-```bash
-npm run server
-```
-
-Starts Express server on `http://localhost:5000`
-
-### Frontend Only
-
-```bash
-npm start
-```
-
-Starts React app on `http://localhost:3000`
-
-## Database
-
-### SQLite Database File
-
-The database is stored locally as `database.db` in the project root.
-
-### Database Schema
-
-#### Users Table
-
-- `id` (INTEGER PRIMARY KEY)
-- `email` (TEXT UNIQUE)
-- `password` (TEXT - hashed with bcrypt)
-- `name` (TEXT)
-- `company` (TEXT - optional)
-- `accountType` (TEXT - 'personal' or 'business')
-- `margin` (REAL - pricing margin for user)
-- `subscription` (TEXT - 'active' or 'inactive')
-- `createdAt` (DATETIME)
-
-#### Orders Table
-
-- `id` (INTEGER PRIMARY KEY)
-- `userId` (INTEGER - foreign key to users)
-- `orderId` (TEXT UNIQUE)
-- `items` (TEXT - JSON stringified)
-- `total` (REAL)
-- `vehicle` (TEXT - JSON stringified)
-- `createdAt` (DATETIME)
 
 ## API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register` - Register new user
+#### Register User
 
-  - Body: `{ email, password, name, company?, accountType }`
-  - Returns: `{ success, token, user }`
+```
+POST /api/auth/register
+Content-Type: application/json
 
-- `POST /api/auth/login` - Login existing user
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe",
+  "company": "Mechanic Shop",
+  "accountType": "business"
+}
+```
 
-  - Body: `{ email, password }`
-  - Returns: `{ success, token, user }`
+Response:
 
-- `POST /api/auth/verify` - Verify JWT token
-  - Headers: `Authorization: Bearer <token>`
-  - Returns: `{ success, user }`
+```json
+{
+  "success": true,
+  "token": "jwt-token-here",
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "name": "Mechanic Shop",
+    "accountType": "business",
+    "margin": 15,
+    "subscription": "active"
+  }
+}
+```
+
+#### Login
+
+```
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+Response: Same as register
+
+#### Verify Token
+
+```
+POST /api/auth/verify
+Authorization: Bearer <token>
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "user": {
+    "userId": "uuid",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "accountType": "business"
+  }
+}
+```
 
 ### Orders
 
-- `POST /api/orders` - Create/save an order (requires auth)
+#### Save Order
 
-  - Headers: `Authorization: Bearer <token>`
-  - Body: `{ orderId, items, total, vehicle? }`
-  - Returns: `{ success, message, id }`
+```
+POST /api/orders
+Authorization: Bearer <token>
+Content-Type: application/json
 
-- `GET /api/orders` - Get user's orders (requires auth)
-  - Headers: `Authorization: Bearer <token>`
-  - Returns: `{ success, orders[] }`
+{
+  "orderId": "ORDER-20240101-ABCD",
+  "items": [
+    {
+      "id": 1,
+      "name": "Brake Pad Set",
+      "price": 45.99,
+      "quantity": 2
+    }
+  ],
+  "total": 91.98,
+  "vehicle": {
+    "year": "2020",
+    "make": "Toyota",
+    "model": "Camry"
+  }
+}
+```
 
-### Health
+Response:
 
-- `GET /api/health` - Health check
-  - Returns: `{ status }`
+```json
+{
+  "success": true,
+  "message": "Order saved successfully",
+  "id": "uuid"
+}
+```
 
-## Authentication Flow
+#### Get User Orders
 
-1. **User Registration/Login**
+```
+GET /api/orders
+Authorization: Bearer <token>
+```
 
-   - User enters email and password in signup/login modal
-   - Frontend sends request to `/api/auth/register` or `/api/auth/login`
-   - Backend hashes password (bcrypt) and stores/validates in SQLite
-   - Backend returns JWT token + user object
-   - Frontend stores token in `localStorage` and updates state
+Response:
 
-2. **Authenticated Requests**
-   - Frontend includes token in `Authorization: Bearer <token>` header
-   - Backend verifies token with JWT middleware
-   - Request succeeds if token is valid; fails if expired or invalid
+```json
+{
+  "success": true,
+  "orders": [
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "order_id": "ORDER-20240101-ABCD",
+      "items": [...],
+      "total": 91.98,
+      "vehicle": {...},
+      "created_at": "2024-01-01T10:00:00Z"
+    }
+  ]
+}
+```
 
 ## Environment Variables
 
-### Backend (.env)
+Create a `.env` file in the project root:
 
-```
-JWT_SECRET=your-secret-key-change-in-production
+```env
+JWT_SECRET=your-secret-key
 PORT=5000
 NODE_ENV=development
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-public-key
 ```
 
-### Frontend (.env.development)
+## Running the Backend
 
+Development mode (runs both frontend and backend):
+
+```bash
+npm run dev
 ```
-REACT_APP_API_URL=http://localhost:5000/api
+
+Backend only:
+
+```bash
+npm run server
 ```
 
-## Testing
+Frontend only:
 
-### Demo Accounts (local/in-memory only)
+```bash
+npm start
+```
 
-- Business: `demo@mechanic.com` / `demo123`
-- Personal: `personal@email.com` / `demo123`
-- Admin: `admin@directfit.com` / `admin123`
+## Security Notes
 
-Note: These demo accounts are available in the initial React state for backwards compatibility but won't work with the backend. Register new accounts via the signup modal.
-
-## Deploying to Production
-
-1. Change `JWT_SECRET` in `.env` to a strong random value
-2. Set `NODE_ENV=production`
-3. Update `REACT_APP_API_URL` in production build to point to your server
-4. Deploy backend server (e.g., via Heroku, AWS, DigitalOcean)
-5. Build and deploy frontend (e.g., via Vercel, Netlify, GitHub Pages)
-6. Ensure CORS is configured properly for your domain
-
-## Troubleshooting
-
-### "Connection refused" error
-
-- Ensure backend server is running on port 5000: `npm run server`
-- Check that `.env.development` has correct `REACT_APP_API_URL`
-
-### Login returns "Invalid credentials"
-
-- Ensure user exists in database (register first)
-- Check backend logs for errors
-
-### Database locked error
-
-- Ensure only one instance of the backend is running
-- Delete `database.db` to start fresh if needed
+- Passwords are hashed using bcrypt (10 salt rounds)
+- JWT tokens expire after 7 days
+- Row Level Security (RLS) is enabled on Supabase tables
+- Never commit `.env` file to version control
+- Use environment variables for all sensitive data

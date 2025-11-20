@@ -1,70 +1,212 @@
-# Getting Started with Create React App
+# Direct Fit Automotive
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+E-commerce platform for automotive parts with user authentication, shopping cart, and order management.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- 🔐 User authentication (register/login with JWT)
+- 🛒 Shopping cart with real-time pricing
+- 🚗 Vehicle-specific part search
+- 📦 Order history and tracking
+- 💼 Business and personal account types
+- 📱 Mobile and desktop responsive design
+- 🗂️ Category browsing with subcategories
+- 🔍 Advanced search (vehicle year/make/model, part number)
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Frontend:**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React 19.2.0
+- Tailwind CSS 3.4
+- Lucide React (icons)
 
-### `npm test`
+**Backend:**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Express.js 5.1
+- Supabase (PostgreSQL)
+- JWT authentication
+- bcrypt password hashing
 
-### `npm run build`
+## Quick Start
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Install Dependencies
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2. Set Up Supabase
 
-### `npm run eject`
+Follow the detailed instructions in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Quick summary:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Create account at https://supabase.com
+2. Create new project
+3. Run the SQL schema from SUPABASE_SETUP.md
+4. Copy your Project URL and API key
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 3. Configure Environment Variables
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Create a `.env` file in the project root:
 
-## Learn More
+```env
+JWT_SECRET=your-random-secret-key-change-this
+PORT=5000
+NODE_ENV=development
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_KEY=your-anon-public-key-here
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+See `.env.example` for template.
 
-### Code Splitting
+### 4. Replace Old Server File
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+Remove-Item server.js
+Rename-Item server-supabase.js server.js
+```
 
-### Analyzing the Bundle Size
+### 5. Remove SQLite Dependency
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```bash
+npm uninstall sqlite3
+```
 
-### Making a Progressive Web App
+### 6. Run the Application
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+**Development mode (both frontend and backend):**
 
-### Advanced Configuration
+```bash
+npm run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+This starts:
 
-### Deployment
+- Backend API server at http://localhost:5000
+- React frontend at http://localhost:3000
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+**Backend only:**
 
-### `npm run build` fails to minify
+```bash
+npm run server
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**Frontend only:**
+
+```bash
+npm start
+```
+
+## Project Structure
+
+```
+direct-fit-automotive/
+├── public/
+│   ├── brands/              # Brand logo images
+│   ├── category-images/     # Subcategory images
+│   └── index.html
+├── src/
+│   ├── App.js              # Main application component
+│   ├── App.css
+│   ├── index.js
+│   └── index.css
+├── server.js               # Express backend (Supabase)
+├── .env                    # Environment variables (DO NOT COMMIT)
+├── .env.example            # Environment template
+├── package.json
+├── SUPABASE_SETUP.md       # Detailed Supabase setup guide
+└── DATABASE_GUIDE.md       # API documentation
+```
+
+## API Documentation
+
+See [DATABASE_GUIDE.md](./DATABASE_GUIDE.md) for complete API reference.
+
+**Base URL:** `http://localhost:5000/api`
+
+**Endpoints:**
+
+- `POST /auth/register` - Create new account
+- `POST /auth/login` - Login
+- `POST /auth/verify` - Verify JWT token
+- `POST /orders` - Save order (requires auth)
+- `GET /orders` - Get user orders (requires auth)
+
+## Account Types
+
+**Business Account:**
+
+- For mechanic shops and dealerships
+- 15% margin pricing
+- Company name displayed
+
+**Personal Account:**
+
+- For individual customers
+- 20% margin pricing
+- Personal name displayed
+
+## Development Notes
+
+- Frontend runs on port 3000
+- Backend runs on port 5000
+- CORS enabled for cross-origin requests
+- JWT tokens expire after 7 days
+- Passwords hashed with bcrypt (10 salt rounds)
+
+## Deployment
+
+### Frontend (Vercel/Netlify)
+
+1. Build the app:
+
+```bash
+npm run build
+```
+
+2. Deploy the `build` folder
+
+3. Set environment variable:
+
+```
+REACT_APP_API_URL=https://your-backend-url.com/api
+```
+
+### Backend (Railway/Render/Heroku)
+
+1. Deploy `server.js` to your hosting platform
+
+2. Set environment variables:
+
+```
+JWT_SECRET=your-secret-key
+PORT=5000
+NODE_ENV=production
+SUPABASE_URL=your-supabase-url
+SUPABASE_KEY=your-supabase-key
+```
+
+## Security
+
+- ✅ Environment variables for sensitive data
+- ✅ JWT authentication
+- ✅ Password hashing with bcrypt
+- ✅ Row Level Security (RLS) on Supabase
+- ✅ `.env` excluded from git
+- ✅ CORS configured
+- ⚠️ Update JWT_SECRET before production
+- ⚠️ Use HTTPS in production
+
+## Support
+
+For issues or questions, see:
+
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Database setup
+- [DATABASE_GUIDE.md](./DATABASE_GUIDE.md) - API reference
+
+## License
+
+Private project

@@ -1,9 +1,9 @@
-// Express backend server with SQLite database and JWT authentication
+// Express backend server with Supabase database and JWT authentication
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
@@ -14,43 +14,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 app.use(cors());
 app.use(express.json());
 
-// Database setup
-const db = new sqlite3.Database('./database.db', (err) => {
-  if (err) console.error('Database connection error:', err);
-  else console.log('Connected to SQLite database');
-});
+// Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
-// Initialize database tables
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      company TEXT,
-      accountType TEXT DEFAULT 'personal',
-      margin REAL DEFAULT 20,
-      subscription TEXT DEFAULT 'active',
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS orders (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      userId INTEGER NOT NULL,
-      orderId TEXT UNIQUE NOT NULL,
-      items TEXT NOT NULL,
-      total REAL NOT NULL,
-      vehicle TEXT,
-      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (userId) REFERENCES users(id)
-    )
-  `);
-
-  console.log('Database tables initialized');
-});
+console.log('Connected to Supabase');
 
 // ============ AUTHENTICATION ROUTES ============
 
@@ -65,92 +35,123 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const fullName = accountType === 'business' ? company : name;
+    const margin = accountType === 'business' ? 15 : 20;
+    
+    // Make admin if email contains 'admin@' or is first user
+    const { data: userCount } = await supabase
+      .from('users')
+      .select('id', { count: 'exact', head: true });
+    
+    const isAdmin = email.includes('admin@') || (userCount?.length === 0);
 
-    db.run(
-      `INSERT INTO users (email, password, name, company, accountType, margin)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [email, hashedPassword, fullName, company || null, accountType || 'personal', accountType === 'business' ? 15 : 20],
-      function (err) {
-        if (err) {
-          if (err.message.includes('UNIQUE constraint failed')) {
-            return res.status(409).json({ error: 'Email already exists' });
-          }
-          return res.status(500).json({ error: 'Registration failed' });
-        }
+    // Check if user already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
 
-        // Generate JWT token
-        const token = jwt.sign(
-          { userId: this.lastID, email, name: fullName, accountType },
-          JWT_SECRET,
-          { expiresIn: '7d' }
-        );
+    if (existingUser) {
+      return res.status(409).json({ error: 'Email already exists' });
+    }
 
-        res.status(201).json({
-          success: true,
-          token,
-          user: {
-            id: this.lastID,
-            email,
-            name: fullName,
-            accountType,
-            margin: accountType === 'business' ? 15 : 20,
-            subscription: 'active'
-          }
-        });
-      }
+    // Insert new user
+    const { data: newUser, error } = await supabase
+      .from('users')
+      .insert({
+        email,
+        password: hashedPassword,
+        name: fullName,
+        company: company || null,
+        account_type: accountType || 'personal',
+        margin,
+        is_admin: isAdmin
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: 'Registration failed' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: newUser.id, email, name: fullName, accountType, isAdmin },
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: newUser.id,
+        email,
+        name: fullName,
+        accountType,
+        margin,
+        subscription: 'active',
+        isAdmin
+      }
+    });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration error' });
   }
 });
 
 // Login route
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
+  try {
+    // Get user by email
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    try {
-      const passwordMatch = await bcrypt.compare(password, user.password);
+    // Check password
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-      if (!passwordMatch) {
-        return res.status(401).json({ error: 'Invalid email or password' });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email, name: user.name, accountType: user.accountType },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.json({
-        success: true,
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          accountType: user.accountType,
-          margin: user.margin,
-          subscription: user.subscription
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ error: 'Login error' });
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
-  });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, name: user.name, accountType: user.account_type, isAdmin: user.is_admin || false },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        accountType: user.account_type,
+        margin: user.margin,
+        subscription: user.subscription,
+        isAdmin: user.is_admin || false
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login error' });
+  }
 });
 
 // Verify token route
@@ -172,7 +173,7 @@ app.post('/api/auth/verify', (req, res) => {
 // ============ ORDERS ROUTES ============
 
 // Save order
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -187,29 +188,36 @@ app.post('/api/orders', (req, res) => {
       return res.status(400).json({ error: 'Missing order data' });
     }
 
-    db.run(
-      `INSERT INTO orders (userId, orderId, items, total, vehicle)
-       VALUES (?, ?, ?, ?, ?)`,
-      [decoded.userId, orderId, JSON.stringify(items), total, JSON.stringify(vehicle)],
-      function (err) {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to save order' });
-        }
+    const { data, error } = await supabase
+      .from('orders')
+      .insert({
+        user_id: decoded.userId,
+        order_id: orderId,
+        items,
+        total,
+        vehicle
+      })
+      .select()
+      .single();
 
-        res.status(201).json({
-          success: true,
-          message: 'Order saved successfully',
-          id: this.lastID
-        });
-      }
-    );
+    if (error) {
+      console.error('Order save error:', error);
+      return res.status(500).json({ error: 'Failed to save order' });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Order saved successfully',
+      id: data.id
+    });
   } catch (error) {
+    console.error('Order error:', error);
     res.status(401).json({ error: 'Invalid token' });
   }
 });
 
 // Get user orders
-app.get('/api/orders', (req, res) => {
+app.get('/api/orders', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -219,31 +227,116 @@ app.get('/api/orders', (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    db.all(
-      `SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC`,
-      [decoded.userId],
-      (err, orders) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to fetch orders' });
-        }
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', decoded.userId)
+      .order('created_at', { ascending: false });
 
-        const parsedOrders = orders.map(order => ({
-          ...order,
-          items: JSON.parse(order.items),
-          vehicle: order.vehicle ? JSON.parse(order.vehicle) : null
-        }));
+    if (error) {
+      console.error('Orders fetch error:', error);
+      return res.status(500).json({ error: 'Failed to fetch orders' });
+    }
 
-        res.json({ success: true, orders: parsedOrders });
-      }
-    );
+    res.json({ success: true, orders });
   } catch (error) {
+    console.error('Orders error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// ============ ADMIN ROUTES ============
+
+// Get all users (admin only)
+app.get('/api/admin/users', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    if (!decoded.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, email, name, company, account_type, margin, subscription, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Users fetch error:', error);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Admin error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Update user margin (admin only)
+app.put('/api/admin/users/:userId/margin', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    if (!decoded.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    const { userId } = req.params;
+    const { margin } = req.body;
+
+    console.log('Updating user margin:', { userId, margin, type: typeof userId });
+
+    if (margin === undefined || margin < 0 || margin > 100) {
+      return res.status(400).json({ error: 'Invalid margin value' });
+    }
+
+    // First check if user exists
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('id, email, margin')
+      .eq('id', userId)
+      .single();
+
+    console.log('Existing user:', existingUser, 'Error:', fetchError);
+
+    if (fetchError || !existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ margin: parseFloat(margin) })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Margin update error:', error);
+      return res.status(500).json({ error: 'Failed to update margin' });
+    }
+
+    res.json({ success: true, user: data });
+  } catch (error) {
+    console.error('Admin error:', error);
     res.status(401).json({ error: 'Invalid token' });
   }
 });
 
 // ============ HEALTH CHECK ============
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running' });
+  res.json({ status: 'Server is running with Supabase' });
 });
 
 // Start server
@@ -255,5 +348,7 @@ app.listen(PORT, () => {
   console.log('  POST   /api/auth/verify    - Verify JWT token');
   console.log('  POST   /api/orders         - Save order (requires auth)');
   console.log('  GET    /api/orders         - Get user orders (requires auth)');
+  console.log('  GET    /api/admin/users    - Get all users (admin)');
+  console.log('  PUT    /api/admin/users/:id/margin - Update user margin (admin)');
   console.log('  GET    /api/health         - Health check');
 });
