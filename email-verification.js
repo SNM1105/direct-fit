@@ -6,28 +6,44 @@
 
 const nodemailer = require('nodemailer');
 
-// Configure your email service
-// For Gmail, use an App Password: https://support.google.com/accounts/answer/185833
-let transporter;
+// Lazy-load transporter to ensure env vars are loaded
+let transporter = null;
+let transporterInitialized = false;
 
-// For development/testing, if email credentials fail, use console logging
-if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD && process.env.EMAIL_PASSWORD !== 'your-app-password-here') {
-  try {
-    transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: (process.env.EMAIL_PASSWORD || '').replace(/\s/g, '')
-      }
-    });
-  } catch (e) {
-    console.error('Failed to create email transporter:', e.message);
+function getTransporter() {
+  if (transporterInitialized) {
+    return transporter;
+  }
+
+  transporterInitialized = true;
+
+  // Configure your email service
+  // For Gmail, use an App Password: https://support.google.com/accounts/answer/185833
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD && process.env.EMAIL_PASSWORD !== 'your-app-password-here') {
+    try {
+      const cleanPassword = (process.env.EMAIL_PASSWORD || '').replace(/\s/g, '');
+      transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: cleanPassword
+        }
+      });
+      console.log('✓ Email transporter created successfully for:', process.env.EMAIL_USER);
+    } catch (e) {
+      console.error('✗ Failed to create email transporter:', e.message);
+      transporter = null;
+    }
+  } else {
+    console.log('✗ Email not configured - using console logging only');
+    console.log('  EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Not set');
+    console.log('  EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? 'Set' : 'Not set');
     transporter = null;
   }
-} else {
-  transporter = null;
+
+  return transporter;
 }
 
 // Generate verification token
@@ -38,6 +54,7 @@ function generateVerificationToken() {
 
 // Send verification email
 async function sendVerificationEmail(email, token, baseUrl) {
+  const transporter = getTransporter();
   const verificationLink = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
   
   const mailOptions = {
@@ -69,11 +86,18 @@ async function sendVerificationEmail(email, token, baseUrl) {
     return Promise.resolve();
   }
   
-  return transporter.sendMail(mailOptions);
+  console.log('Sending verification email to:', email);
+  return transporter.sendMail(mailOptions)
+    .then(() => console.log('✓ Verification email sent successfully to:', email))
+    .catch(err => {
+      console.error('✗ Failed to send verification email:', err.message);
+      throw err;
+    });
 }
 
 // Send order confirmation email
 async function sendOrderConfirmationEmail(email, name, orderId, items, total, vehicle, shippingAddress) {
+  const transporter = getTransporter();
   const itemsList = items.map(item => 
     `<tr>
       <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}<br/><small style="color: #666;">Part #: ${item.partNumber}</small></td>
@@ -156,7 +180,13 @@ async function sendOrderConfirmationEmail(email, name, orderId, items, total, ve
     return Promise.resolve();
   }
   
-  return transporter.sendMail(mailOptions);
+  console.log('Sending order confirmation email to:', email);
+  return transporter.sendMail(mailOptions)
+    .then(() => console.log('✓ Order confirmation email sent successfully to:', email))
+    .catch(err => {
+      console.error('✗ Failed to send order confirmation email:', err.message);
+      throw err;
+    });
 }
 
 module.exports = {

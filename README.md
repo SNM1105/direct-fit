@@ -5,13 +5,19 @@ E-commerce platform for automotive parts with user authentication, shopping cart
 ## Features
 
 - 🔐 User authentication (register/login with JWT)
+- ✉️ Email verification for new accounts
+- 💳 Stripe payment integration
 - 🛒 Shopping cart with real-time pricing
-- 🚗 Vehicle-specific part search
+- 🚗 Vehicle-specific part search (year/make/model)
 - 📦 Order history and tracking
 - 💼 Business and personal account types
 - 📱 Mobile and desktop responsive design
 - 🗂️ Category browsing with subcategories
 - 🔍 Advanced search (vehicle year/make/model, part number)
+- ❤️ Wishlist functionality
+- 🔧 Garage (save vehicles for quick access)
+- 🌐 Multi-language support (English/French)
+- 👨‍💼 Admin panel for user management
 
 ## Tech Stack
 
@@ -20,6 +26,7 @@ E-commerce platform for automotive parts with user authentication, shopping cart
 - React 19.2.0
 - Tailwind CSS 3.4
 - Lucide React (icons)
+- Stripe.js (payments)
 
 **Backend:**
 
@@ -27,6 +34,34 @@ E-commerce platform for automotive parts with user authentication, shopping cart
 - Supabase (PostgreSQL)
 - JWT authentication
 - bcrypt password hashing
+- Nodemailer (email verification)
+
+## Project Structure
+
+```
+direct-fit-automotive/
+├── public/                    # Static assets
+│   ├── brands/               # Brand logos
+│   └── category-images/      # Category images
+├── scripts/                   # Database migrations & utilities
+│   ├── setup-database.js     # Initial database setup
+│   ├── migrate-*.js          # Migration scripts
+│   └── test-*.js             # Test utilities
+├── src/
+│   ├── components/           # React components
+│   ├── data/                 # Static data
+│   │   ├── catalog.js        # Categories & mock parts
+│   │   └── translations.js   # i18n translations
+│   ├── pages/                # Page components
+│   ├── services/             # API service layer
+│   │   └── api.js            # Centralized API calls
+│   ├── App.js                # Main app component
+│   ├── index.js              # Entry point
+│   └── index.css             # Tailwind CSS
+├── server.js                  # Express backend server
+├── email-verification.js      # Email verification utilities
+└── package.json
+```
 
 ## Quick Start
 
@@ -38,13 +73,9 @@ npm install
 
 ### 2. Set Up Supabase
 
-Follow the detailed instructions in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
-
-Quick summary:
-
 1. Create account at https://supabase.com
 2. Create new project
-3. Run the SQL schema from SUPABASE_SETUP.md
+3. Run the database schema (see scripts/setup-database.js)
 4. Copy your Project URL and API key
 
 ### 3. Configure Environment Variables
@@ -58,24 +89,17 @@ NODE_ENV=development
 
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-anon-public-key-here
+
+# Stripe (optional - for payments)
+STRIPE_SECRET_KEY=sk_test_...
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# Email (optional - for verification)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
 ```
 
-See `.env.example` for template.
-
-### 4. Replace Old Server File
-
-```bash
-Remove-Item server.js
-Rename-Item server-supabase.js server.js
-```
-
-### 5. Remove SQLite Dependency
-
-```bash
-npm uninstall sqlite3
-```
-
-### 6. Run the Application
+### 4. Run the Application
 
 **Development mode (both frontend and backend):**
 

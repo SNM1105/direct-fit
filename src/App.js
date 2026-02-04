@@ -223,6 +223,12 @@ const translations = {
     error: 'Error',
     errorOccurred: 'An error occurred',
     tryAgain: 'Try Again',
+    
+    // Email Verification
+    resendVerification: 'Resend Verification Email',
+    verificationEmailSent: 'Verification email sent! Please check your inbox.',
+    verificationFailed: 'Failed to send verification email.',
+    enterEmailToResend: 'Enter your email to resend verification:',
   },
   fr: {
     // Navigation
@@ -414,6 +420,12 @@ const translations = {
     error: 'Erreur',
     errorOccurred: 'Une erreur s\'est produite',
     tryAgain: 'Réessayer',
+    
+    // Email Verification
+    resendVerification: 'Renvoyer l\'e-mail de vérification',
+    verificationEmailSent: 'E-mail de vérification envoyé! Veuillez vérifier votre boîte de réception.',
+    verificationFailed: 'Échec de l\'envoi de l\'e-mail de vérification.',
+    enterEmailToResend: 'Entrez votre e-mail pour renvoyer la vérification:',
   }
 };
 
@@ -740,15 +752,26 @@ const partnerBrands = [
 // in `public/brands` named like `ac-delco.svg`, `bosch.svg`, etc.
 const brandLogoFilename = (brand) => brand.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-function BrandLogo({ brand }) {
+function BrandLogo({ brand, bare = false }) {
   // Try common filename variants so files like `Bosch-Logo.png` are found.
-  const exts = ['png', 'svg', 'jpg', 'webp']; // prefer PNG first
+  // Prefer SVG where available (scales crisply). Then PNG/webp/jpg fallbacks.
+  const exts = ['svg', 'png', 'webp', 'jpg'];
   const base = brandLogoFilename(brand);
+  // Try a variety of common filename patterns: hyphens, underscores, concatenated, and '-blk' variants.
+  const compact = base.replace(/-/g, '');
   const basenames = [
     base,
     `${base}-logo`,
+    `${base}_logo`,
     `${base}logo`,
-    base.replace(/-/g, ''),
+    compact,
+    `${compact}-logo`,
+    `${compact}_logo`,
+    `${compact}logo`,
+    `${base}-logo-blk`,
+    `${base}-blk`,
+    `${compact}-logo-blk`,
+    `${compact}-blk`,
   ];
 
   const candidates = [];
@@ -766,7 +789,18 @@ function BrandLogo({ brand }) {
     // nothing here, but keep idx/failure responsive
   }, [idx, failed]);
 
+  const src = candidates[idx];
+
   if (failed) {
+    // Fallback for missing logo: show brand text centered. If `bare`, make it minimal.
+    if (bare) {
+      return (
+        <div className="h-16 w-full flex items-center justify-center">
+          <span className="text-sm text-gray-300">{brand}</span>
+        </div>
+      );
+    }
+
     return (
       <div className="h-16 w-full flex items-center justify-center">
         <div className="bg-white p-2 rounded-md shadow-sm w-full h-full flex items-center justify-center">
@@ -776,7 +810,22 @@ function BrandLogo({ brand }) {
     );
   }
 
-  const src = candidates[idx];
+  // When `bare` is true we render just the image (no card background)
+  if (bare) {
+    return (
+      <div className="h-16 w-full flex items-center justify-center">
+        <img
+          src={src}
+          alt={brand}
+          className="max-h-12 w-auto object-contain"
+          onError={() => {
+            if (idx < candidates.length - 1) setIdx(idx + 1);
+            else setFailed(true);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-16 w-full flex items-center justify-center">
@@ -921,7 +970,7 @@ function Breadcrumbs({ path, setCurrentPage, t }) {
   );
 }
 
-function Header({ cartCount, isLoggedIn, currentUserName, currentUser, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack, language, onLanguageChange, t, onOpenGarage, onOpenWishlist, wishlistCount, onOpenProfile }) {
+function Header({ cartCount, isLoggedIn, currentUserName, currentUser, onLoginClick, onLogoutClick, onOpenCart, onOpenOrders, setCurrentPage, onBack, canGoBack, language, onLanguageChange, t, onOpenGarage, onOpenWishlist, wishlistCount, onOpenProfile, cartAnimation, wishlistAnimation }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -964,7 +1013,7 @@ function Header({ cartCount, isLoggedIn, currentUserName, currentUser, onLoginCl
                 <button onClick={onOpenGarage} className="hidden md:block text-gray-300 hover:text-yellow-400 transition p-2" title={t.myGarage}>
                   <Car className="h-5 w-5" />
                 </button>
-                <button onClick={onOpenWishlist} className="hidden md:block relative text-gray-300 hover:text-yellow-400 transition p-2" title={t.wishlist}>
+                <button onClick={onOpenWishlist} className={`hidden md:block relative text-gray-300 hover:text-yellow-400 transition p-2 ${wishlistAnimation ? 'animate-bounce' : ''}`} title={t.wishlist}>
                   <Star className="h-5 w-5" />
                   {wishlistCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold">
@@ -979,7 +1028,7 @@ function Header({ cartCount, isLoggedIn, currentUserName, currentUser, onLoginCl
               <Menu className="h-6 w-6" />
             </button>
 
-            <button onClick={onOpenCart} className="relative text-gray-300 hover:text-yellow-400 transition p-2">
+            <button onClick={onOpenCart} className={`relative text-gray-300 hover:text-yellow-400 transition p-2 ${cartAnimation ? 'animate-bounce' : ''}`}>
               <ShoppingCart className="h-6 w-6" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
@@ -1070,7 +1119,9 @@ function HomePage(props) {
     mockParts,
     selectedVehicle,
     setSelectedVehicle,
-    language
+    language,
+    setShowAuthModal,
+    setAuthMode
   } = props;
 
   return (
@@ -1229,25 +1280,29 @@ function HomePage(props) {
             <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
               {t.getAccessDesc}
             </p>
-            <button className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition" onClick={() => setCurrentPage('home')}>
+            <button className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition" onClick={() => { setShowAuthModal(true); setAuthMode('signup'); }}>
               {t.requestAccess}
             </button>
           </div>
         )}
 
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t.brandsWeCarry}</h2>
-          <p className="text-gray-600 mb-4">{t.brandsIntro}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 items-stretch">
-            {partnerBrands.map((brand, idx) => (
-              <div key={idx} className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 p-4 hover:border-red-600 transition">
-                <div className="h-12 w-full flex items-center justify-center">
-                  <BrandLogo brand={brand} />
-                </div>
-              </div>
-            ))}
+        <div className="mt-8 bg-white rounded-lg shadow-lg">
+          <div className="card-header">
+            <h2 className="text-2xl font-bold mb-0">{t.brandsWeCarry}</h2>
+            <p className="text-sm text-white/90 mt-1">{t.brandsIntro}</p>
           </div>
-          <p className="text-sm text-gray-500 mt-6 text-center">{t.andMoreBrands}</p>
+          <div className="p-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-6 items-center">
+              {partnerBrands.map((brand, idx) => (
+                <div key={idx} className="flex items-center justify-center p-2 transition">
+                  <div className="h-16 w-full flex items-center justify-center brand-logo">
+                    <BrandLogo brand={brand} bare={true} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-6 text-center">{t.andMoreBrands}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -2580,6 +2635,10 @@ export default function DirectFitAutomotive() {
   /* --- Loading States --- */
   const [isSearching, setIsSearching] = useState(false);
   const [orders, setOrders] = useState([]);
+  
+  /* --- Animation States --- */
+  const [cartAnimation, setCartAnimation] = useState(false);
+  const [wishlistAnimation, setWishlistAnimation] = useState(false);
 
   /* --- login/signup modal --- */
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -2631,6 +2690,45 @@ export default function DirectFitAutomotive() {
     };
 
     restoreSession();
+  }, []);
+
+  /* --- Effect: Handle email verification from URL --- */
+  useEffect(() => {
+    const verifyEmailFromURL = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const email = urlParams.get('email');
+
+      if (token && email) {
+        try {
+          const response = await fetch(`${API_BASE}/auth/verify-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, email })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Email verified successfully, log the user in
+            localStorage.setItem('token', data.token);
+            setCurrentUser(data.user);
+            setIsLoggedIn(true);
+            alert(data.message || 'Email verified successfully! You are now logged in.');
+            
+            // Clear URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } else {
+            alert(data.error || 'Email verification failed. The link may have expired.');
+          }
+        } catch (error) {
+          console.error('Email verification error:', error);
+          alert('Email verification failed. Please try again.');
+        }
+      }
+    };
+
+    verifyEmailFromURL();
   }, []);
 
   // Helper function to load user data from backend
@@ -2741,18 +2839,29 @@ export default function DirectFitAutomotive() {
     }
   };
 
-  /* --- Effects: fetch makes & models --- */
+  /* --- Effects: fetch makes & models from cached backend endpoint --- */
   useEffect(() => {
     const fetchMakes = async () => {
       setLoadingMakes(true);
       try {
-        const response = await fetch('https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json');
+        // Use backend cached endpoint instead of calling NHTSA directly
+        const response = await fetch(`${API_BASE}/vehicle-data/makes`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
-        const makesList = data.Results.map(item => item.MakeName).sort();
-        setMakes(makesList);
+        console.log('[MAKES] Response:', data);
+        if (data.success && data.makes) {
+          console.log('[MAKES] Setting makes:', data.makes.slice(0, 5), '... total:', data.makes.length);
+          setMakes(data.makes);
+        } else {
+          throw new Error('Invalid response format');
+        }
       } catch (error) {
         console.error('Error fetching makes:', error);
-        setMakes(['Honda', 'Toyota', 'Ford', 'Chevrolet', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen']);
+        const fallback = ['Honda', 'Toyota', 'Ford', 'Chevrolet', 'Nissan', 'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen'];
+        console.log('[MAKES] Using fallback makes:', fallback);
+        setMakes(fallback);
       }
       setLoadingMakes(false);
     };
@@ -2767,13 +2876,24 @@ export default function DirectFitAutomotive() {
       }
       setLoadingModels(true);
       try {
-        const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${make}?format=json`);
+        // Use backend cached endpoint instead of calling NHTSA directly
+        const url = `${API_BASE}/vehicle-data/models/${encodeURIComponent(make)}`;
+        console.log('[MODELS] Fetching from:', url);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
-        const modelsList = data.Results.map(item => item.Model_Name).sort();
-        setModels(modelsList);
+        console.log('[MODELS] Response for', make, ':', data);
+        if (data.success && data.models) {
+          console.log('[MODELS] Setting models for', make, ':', data.models.slice(0, 5), '... total:', data.models.length);
+          setModels(data.models);
+        } else {
+          throw new Error('Invalid response format');
+        }
       } catch (error) {
-        console.error('Error fetching models:', error);
-        setModels(['Model data unavailable']);
+        console.error('Error fetching models for', make, ':', error);
+        setModels([]);
       }
       setLoadingModels(false);
     };
@@ -2799,7 +2919,12 @@ export default function DirectFitAutomotive() {
         setLoginEmail('');
         setLoginPassword('');
       } else {
-        alert(data.error || 'Login failed');
+        // Check if email verification is required
+        if (data.needsVerification) {
+          alert(data.error + '\n\nPlease check your email inbox for the verification link.');
+        } else {
+          alert(data.error || 'Login failed');
+        }
       }
     } catch (error) {
       alert('Login error: ' + error.message);
@@ -2828,11 +2953,10 @@ export default function DirectFitAutomotive() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        localStorage.setItem('token', data.token);
-        setCurrentUser(data.user);
-        setIsLoggedIn(true);
-        setShowAuthModal(false);
+        // Registration successful - user must verify email before logging in
+        alert(data.message || 'Registration successful! Please check your email to verify your account.');
         setSignupData({ email: '', password: '', name: '', company: '', accountType: 'business' });
+        setAuthMode('login'); // Switch back to login mode
       } else {
         alert(data.error || 'Signup failed');
       }
@@ -2911,6 +3035,10 @@ export default function DirectFitAutomotive() {
       const data = await response.json();
       
       if (response.ok && data.success) {
+        // Trigger cart animation
+        setCartAnimation(true);
+        setTimeout(() => setCartAnimation(false), 600);
+        
         // Reload cart from backend
         await loadUserData(token);
       } else {
@@ -3039,6 +3167,10 @@ export default function DirectFitAutomotive() {
       const data = await response.json();
       
       if (response.ok && data.success) {
+        // Trigger wishlist animation
+        setWishlistAnimation(true);
+        setTimeout(() => setWishlistAnimation(false), 600);
+        
         // Update local state optimistically
         setWishlist(prev => [...prev, product]);
       } else {
@@ -3507,6 +3639,8 @@ export default function DirectFitAutomotive() {
             selectedVehicle={selectedVehicle}
             setSelectedVehicle={setSelectedVehicle}
             language={language}
+            setShowAuthModal={setShowAuthModal}
+            setAuthMode={setAuthMode}
           />
         );
       case 'about':
@@ -3600,6 +3734,8 @@ export default function DirectFitAutomotive() {
         onOpenGarage={() => setShowGarageModal(true)}
         onOpenWishlist={() => navigateTo('wishlist')}
         wishlistCount={wishlist.length}
+        cartAnimation={cartAnimation}
+        wishlistAnimation={wishlistAnimation}
       />
 
       <GarageModal
@@ -3666,6 +3802,33 @@ export default function DirectFitAutomotive() {
                   />
                 </div>
                 <button onClick={handleLogin} className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">{t.login}</button>
+                
+                <button 
+                  onClick={async () => {
+                    const email = prompt(t.enterEmailToResend);
+                    if (email) {
+                      try {
+                        const response = await fetch(`${API_BASE}/auth/resend-verification`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email })
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                          alert(data.message || t.verificationEmailSent);
+                        } else {
+                          alert(data.error || t.verificationFailed);
+                        }
+                      } catch (error) {
+                        alert(t.verificationFailed);
+                      }
+                    }
+                  }}
+                  className="w-full text-gray-600 hover:text-gray-800 text-sm font-medium"
+                >
+                  {t.resendVerification}
+                </button>
+                
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                   <p className="text-sm text-gray-700 font-semibold mb-1">{t.demoAccounts}:</p>
                   <p className="text-xs text-gray-600">{t.business}: demo@mechanic.com / demo123</p>

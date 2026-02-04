@@ -278,6 +278,68 @@ app.post('/api/auth/verify-email', async (req, res) => {
   }
 });
 
+// Resend verification email
+app.post('/api/auth/resend-verification', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    // Get user by email
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email);
+
+    if (error || !users || users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = users[0];
+
+    // Check if already verified
+    if (user.email_verified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    // Generate new verification token
+    const verificationToken = generateVerificationToken();
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Update user with new token
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        verification_token: verificationToken,
+        verification_token_expires: tokenExpires.toISOString()
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('[RESEND-VERIFICATION] Update error:', updateError);
+      return res.status(500).json({ error: 'Failed to generate new verification token' });
+    }
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, verificationToken, BASE_URL);
+      console.log('[RESEND-VERIFICATION] Verification email sent to:', email);
+      res.json({
+        success: true,
+        message: 'Verification email sent! Please check your inbox.'
+      });
+    } catch (emailError) {
+      console.error('[RESEND-VERIFICATION] Email send error:', emailError.message);
+      res.status(500).json({ error: 'Failed to send verification email. Please try again later.' });
+    }
+  } catch (error) {
+    console.error('[RESEND-VERIFICATION] Error:', error.message);
+    res.status(500).json({ error: 'Failed to resend verification email' });
+  }
+});
+
 // Get user profile
 app.get('/api/auth/profile', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -939,6 +1001,126 @@ app.delete('/api/wishlist/:itemId', async (req, res) => {
   } catch (error) {
     console.error('Wishlist error:', error);
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// ============ VEHICLE DATA CACHE ROUTES ============
+// Hardcoded list of car makes (faster than calling NHTSA each time)
+const CAR_MAKES = [
+  'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 'Bugatti',
+  'Cadillac', 'Chevrolet', 'Chrysler', 'Citroën', 'Dodge', 'Donkervoort',
+  'Ferrari', 'Fiat', 'Ford', 'Geo', 'GMC', 'Honda', 'Hummer', 'Hyundai',
+  'Infiniti', 'Isuzu', 'Jaguar', 'Jeep', 'Kia', 'Lamborghini', 'Lancia',
+  'Land Rover', 'Lexus', 'Lotus', 'Maserati', 'Maybach', 'Mazda', 'McLaren',
+  'Mercedes-Benz', 'Mercury', 'MG', 'Mini', 'Mitsubishi', 'Morgan', 'Nissan',
+  'Oldsmobile', 'Pagani', 'Panoz', 'Peugeot', 'Plymouth', 'Pontiac', 'Porsche',
+  'Ram', 'Renault', 'Rolls-Royce', 'Rover', 'Saab', 'Saturn', 'Scion', 'Seat',
+  'Shelby', 'Smart', 'Spyker', 'Studebaker', 'Subaru', 'Suzuki', 'Tesla',
+  'Toyota', 'Triumph', 'Volkswagen', 'Volvo', 'Zenvo'
+];
+
+// Models for each make (simplified - commonly available models)
+const CAR_MODELS_BY_MAKE = {
+  'Honda': ['Accord', 'Civic', 'CR-V', 'Odyssey', 'Pilot', 'Ridgeline', 'Insight'],
+  'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Tacoma', 'Tundra', 'Prius', 'Yaris'],
+  'Ford': ['F-150', 'Mustang', 'Fusion', 'Edge', 'Explorer', 'Ranger', 'Escape', 'Transit'],
+  'Chevrolet': ['Silverado', 'Cruze', 'Equinox', 'Traverse', 'Colorado', 'Malibu', 'Blazer'],
+  'Nissan': ['Altima', 'Rogue', 'Maxima', 'Murano', 'Frontier', 'Titan', 'Sentra', 'Versa'],
+  'BMW': ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'Z4', '2 Series'],
+  'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'A-Class', 'GLE', 'GLA', 'GLB'],
+  'Audi': ['A1', 'A3', 'A4', 'A6', 'Q3', 'Q5', 'Q7', 'TT'],
+  'Volkswagen': ['Golf', 'Jetta', 'Passat', 'Tiguan', 'Atlas', 'Beetle', 'Taos'],
+  'Hyundai': ['Elantra', 'Sonata', 'Santa Fe', 'Tucson', 'Kona', 'Venue', 'Palisade'],
+  'Kia': ['Forte', 'K5', 'Sportage', 'Sorento', 'Niro', 'Seltos', 'Telluride'],
+  'Lexus': ['ES', 'GS', 'LS', 'RX', 'NX', 'UX', 'LX'],
+  'Infiniti': ['Q50', 'Q60', 'QX50', 'QX60', 'QX80'],
+  'Dodge': ['Charger', 'Challenger', 'Durango', 'Journey', 'Ram'],
+  'Jeep': ['Wrangler', 'Grand Cherokee', 'Cherokee', 'Compass', 'Renegade'],
+  'GMC': ['Sierra', 'Terrain', 'Acadia', 'Yukon'],
+  'Cadillac': ['CTS', 'Escalade', 'XT6', 'XT5', 'Lyriq'],
+  'Chrysler': ['300', 'Pacifica'],
+  'Mazda': ['3', '6', 'CX-5', 'CX-9', 'MX-5'],
+  'Subaru': ['Outback', 'Legacy', 'Impreza', 'Crosstrek', 'Forester', 'Ascent'],
+  'Acura': ['ILX', 'TLX', 'MDX', 'RDX'],
+  'Ram': ['1500', '2500', '3500'],
+  'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y'],
+  'Porsche': ['911', 'Cayenne', 'Panamera', 'Macan'],
+  'Jaguar': ['F-PACE', 'XE', 'XF', 'F-TYPE'],
+  'Land Rover': ['Range Rover', 'Discovery', 'Defender'],
+  'Volvo': ['S60', 'S90', 'XC40', 'XC60', 'XC90'],
+  'Peugeot': ['308', '3008', '5008'],
+  'Citroën': ['C3', 'C5', 'Berlingo'],
+  'Fiat': ['500', '500X', '500L'],
+  'Alfa Romeo': ['Giulia', 'Stelvio'],
+  'Mini': ['Cooper', 'Countryman'],
+  'Smart': ['Fortwo', 'Forfour'],
+  'Lotus': ['Evora', 'Emira'],
+  'Morgan': ['Plus Four', '3Wheeler'],
+  'Triumph': ['Spitfire', 'TR6'],
+  'Scion': ['tC', 'xA', 'xB'],
+  'Saturn': ['Ion', 'Aura', 'Outlook'],
+  'Pontiac': ['G6', 'Grand Am'],
+  'Oldsmobile': ['Alero', 'Aurora'],
+  'Mercury': ['Mariner', 'Grand Marquis'],
+  'Geo': ['Metro', 'Prizm'],
+  'Isuzu': ['D-Max', 'MU-X'],
+  'Suzuki': ['Swift', 'Vitara', 'Jimny'],
+  'Mitsubishi': ['Outlander', 'Lancer', 'Pajero'],
+  'Bentley': ['Continental', 'Flying Spur'],
+  'Rolls-Royce': ['Phantom', 'Ghost'],
+  'Lamborghini': ['Huracán', 'Aventador'],
+  'Ferrari': ['F8', '812', 'Roma'],
+  'Maserati': ['Ghibli', 'Levante', 'MC20'],
+  'Bugatti': ['Chiron', 'Bolide'],
+};
+
+// In-memory cache for vehicle makes and models
+let vehicleMakesCache = CAR_MAKES;
+let modelsCache = {}; // Cache models per make
+let lastCacheFetch = Date.now();
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+// Get all makes with caching
+app.get('/api/vehicle-data/makes', async (req, res) => {
+  console.log('[MAKES] Request received');
+  try {
+    // Return cached makes (using hardcoded list)
+    console.log('[MAKES] Returning makes, count:', vehicleMakesCache.length);
+    return res.json({ success: true, makes: vehicleMakesCache });
+  } catch (error) {
+    console.error('[MAKES] Error:', error.message);
+    res.json({ 
+      success: true, 
+      makes: CAR_MAKES
+    });
+  }
+});
+
+// Get models for a specific make with caching
+app.get('/api/vehicle-data/models/:make', async (req, res) => {
+  const { make } = req.params;
+  const decodedMake = decodeURIComponent(make);
+  console.log('[MODELS] Request received for:', decodedMake);
+  
+  try {
+    // Check if we have models for this make in our hardcoded list
+    if (CAR_MODELS_BY_MAKE[decodedMake]) {
+      const models = CAR_MODELS_BY_MAKE[decodedMake];
+      console.log(`[MODELS] Returning models for ${decodedMake}, count:`, models.length);
+      // Cache for future requests
+      modelsCache[decodedMake] = {
+        data: models,
+        timestamp: Date.now()
+      };
+      return res.json({ success: true, models });
+    }
+    
+    // If not in hardcoded list, try to fetch from NHTSA
+    console.log(`[MODELS] Make ${decodedMake} not in hardcoded list, returning empty`);
+    res.json({ success: true, models: [] });
+  } catch (error) {
+    console.error(`[MODELS] Error fetching models for ${decodedMake}:`, error.message);
+    res.json({ success: true, models: [] });
   }
 });
 

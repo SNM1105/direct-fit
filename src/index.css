@@ -1,3 +1,154 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Improve overall contrast and make white cards pop */
+:root {
+	/* Dark theme - deep, high-contrast palette */
+	--page-bg: #071428; /* deep navy/black page background */
+	--section-bg: #0b2540; /* slightly lighter section band */
+	--panel-bg: #062a2d; /* subtle teal/green panel tint */
+	--content-text: #e6eef6; /* pale text for readability */
+	--muted-text: #98a7b3; /* muted light text */
+	--card-bg: #071a2a; /* card surface slightly lighter than page */
+	--card-border: rgba(255,255,255,0.04);
+	--card-shadow: rgba(2,6,23,0.7);
+	--accent: #ff5a5f; /* vivid red accent */
+	--accent-dark: #c0393e; /* deeper red */
+	--accent-cta-start: #ff8c42; /* orange for CTA start */
+	--accent-cta-end: #ff3b30; /* red for CTA end */
+}
+
+html, body, #root {
+	height: 100%;
+	/* Dark page background */
+	background-color: var(--page-bg);
+	color: var(--content-text);
+}
+
+/* Give all white cards a subtle border and shadow so they stand out */
+.bg-white {
+	/* In dark theme, treat "white" utility as card surface for contrast */
+	background-color: var(--card-bg) !important;
+	border: 1px solid var(--card-border);
+	box-shadow: 0 10px 34px var(--card-shadow);
+}
+
+/* Slight rounded corners for high-contrast surfaces */
+.bg-white.rounded-lg, .card {
+	border-radius: 0.5rem;
+}
+
+/* Themed card header (use on panels to match hero gradient) */
+.card-header {
+	background: linear-gradient(90deg, #001c34 0%, #8d0004 100%);
+	color: #fff;
+	padding: 0.75rem 1rem;
+	border-top-left-radius: 0.5rem;
+	border-top-right-radius: 0.5rem;
+}
+
+/* Subtle left accent for featured cards */
+.card-accent-left {
+	border-left: 4px solid var(--accent);
+}
+
+/* Make interactive elements feel tangible */
+button, .btn {
+	transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+button:active, .btn:active {
+	transform: translateY(1px);
+}
+
+/* Accent links and primary actions */
+a { color: var(--accent); }
+a:hover { text-decoration: underline; }
+
+/* Accent style for prominent CTAs when a utility class is not used */
+.btn-accent {
+	background-image: linear-gradient(90deg, var(--accent-cta-start) 0%, var(--accent-cta-end) 100%);
+	color: #fff;
+	box-shadow: 0 10px 30px rgba(255,59,48,0.14);
+	border: none;
+	padding: 0.6rem 1rem;
+	border-radius: .5rem;
+}
+
+/* Card footer subtle separator */
+.card-footer {
+	border-top: 1px solid rgba(2,6,23,0.04);
+	padding: 0.75rem 1rem;
+}
+
+/* Reduce grey-on-grey by reassigning Tailwind gray utility backgrounds
+	 - make section backgrounds whiter and cards subtly tinted for contrast */
+.bg-gray-50 { background-color: var(--page-bg) !important; }
+.bg-gray-100 { background-color: var(--section-bg) !important; }
+.bg-gray-200 { background-color: var(--panel-bg) !important; }
+
+/* Make text colors slightly darker where gray-600/700 used */
+.text-gray-600 { color: var(--muted-text) !important; }
+.text-gray-700 { color: var(--content-text) !important; }
+
+/* Ensure inputs and small controls have enough contrast on dark backgrounds */
+input, textarea, select {
+	background-color: rgba(255,255,255,0.03);
+	color: var(--content-text);
+	border: 1px solid rgba(255,255,255,0.04);
+}
+
+.bg-gray-100 .text-gray-600, .bg-gray-200 .text-gray-600 {
+	color: var(--muted-text) !important;
+}
+
+
+/* Reduce extremely bright white borders on small elements */
+.border-white {
+	border-color: rgba(15,23,42,0.03) !important;
+}
+
+/* Text & icon color overrides for dark theme readability */
+.text-gray-900 { color: var(--content-text) !important; }
+.text-gray-800 { color: #dfeaf2 !important; }
+.text-gray-700 { color: #c9d8e3 !important; }
+.text-gray-600 { color: var(--muted-text) !important; }
+.text-gray-500 { color: rgba(230,238,246,0.85) !important; }
+.text-gray-400 { color: rgba(230,238,246,0.70) !important; }
+.text-gray-300 { color: rgba(230,238,246,0.55) !important; }
+.text-gray-200 { color: rgba(230,238,246,0.40) !important; }
+.text-gray-100 { color: rgba(230,238,246,0.25) !important; }
+
+/* Make red utility text use the vivid accent so prices and important labels pop */
+.text-red-600 { color: var(--accent) !important; }
+.text-red-700 { color: var(--accent-dark) !important; }
+
+/* Ensure SVG icons inherit the text color and are visible */
+svg, .icon {
+	/* keep original SVG shapes (don't override fill/stroke), but inherit color */
+	color: inherit;
+	/* brighten and slightly boost saturation so icons read on dark backgrounds */
+	filter: saturate(1.25) brightness(1.15);
+	transition: filter 120ms ease, opacity 120ms ease, transform 120ms ease;
+}
+
+/* Tone down bright utility background helpers used in some components */
+.bg-blue-50 { background-color: rgba(255,255,255,0.02) !important; }
+.bg-green-50 { background-color: rgba(255,255,255,0.02) !important; }
+.bg-red-50 { background-color: rgba(255,255,255,0.02) !important; }
+
+/* Buttons' default text color in dark theme */
+button, .btn { color: var(--content-text); }
+.btn-accent, .bg-red-600, .bg-green-600 { color: #fff !important; }
+
+/* Brand logo adjustments: make SVG logos uniform on dark backgrounds */
+.brand-logo svg {
+	max-height: 48px;
+	width: auto;
+	display: inline-block;
+}
+/* Force SVG fills and strokes to white for visibility on dark background. */
+.brand-logo svg * {
+	fill: #ffffff !important;
+	stroke: #ffffff !important;
+}
